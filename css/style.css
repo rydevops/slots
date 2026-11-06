@@ -96,6 +96,81 @@ button { font: inherit; color: inherit; touch-action: manipulation; cursor: poin
   pointer-events: none;
 }
 #startScreen.leaving { animation: stLeave .5s ease-in forwards; pointer-events: none; }
+
+/* ---------- Machine select menu (placeholder) ---------- */
+#menuScreen {
+  position: fixed; inset: 0; z-index: 44;
+  overflow: hidden; background: #12041a;
+}
+#menuScreen[hidden] { display: none; }
+#menuScreen.entering { animation: mnIn .35s ease-out both; }
+@keyframes mnIn { from { opacity: 0; transform: scale(1.03); } to { opacity: 1; transform: none; } }
+.mn-shade { background: linear-gradient(to bottom, rgba(18,4,26,.55), rgba(18,4,26,.35) 35%, rgba(18,4,26,.85)); }
+.mn-inner {
+  position: absolute; inset: 0;
+  padding: calc(var(--sa-top) + 12px) calc(var(--sa-right) + 16px) calc(var(--sa-bottom) + 36px) calc(var(--sa-left) + 16px);
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  overflow-y: auto; -webkit-overflow-scrolling: touch;
+}
+.mn-title { width: min(78vw, 520px, 60dvh); height: auto; display: block; filter: drop-shadow(0 6px 16px rgba(0,0,0,.6)); }
+.mn-head {
+  margin: 0 0 8px; font-size: clamp(16px, 4.6vw, 24px); letter-spacing: .14em; text-transform: uppercase;
+  color: var(--gold-hi); text-shadow: 0 0 10px rgba(224, 36, 154, .8), 0 2px 0 #3a1050;
+}
+.mn-list {
+  width: min(100%, 680px);
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(8px, 3vw, 14px);
+}
+.mn-card {
+  position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 12px 10px 14px; border-radius: 18px;
+  border: 2px solid var(--gold);
+  background: linear-gradient(160deg, rgba(74, 20, 102, .92), rgba(26, 6, 38, .95));
+  box-shadow: 0 8px 22px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.2), 0 0 18px rgba(224, 36, 154, .35);
+  color: var(--text); text-align: center;
+  transition: transform .12s ease-out, box-shadow .12s;
+}
+.mn-card:not(:disabled):active { transform: scale(.96); }
+@media (hover: hover) { .mn-card:not(:disabled):hover { transform: translateY(-3px); box-shadow: 0 12px 26px rgba(0,0,0,.6), 0 0 26px rgba(224, 36, 154, .6); } }
+.mn-card img { width: 100%; aspect-ratio: 1 / .92; object-fit: contain; display: block; }
+.mn-card .nm { font-size: clamp(15px, 4.2vw, 19px); font-weight: bold; color: var(--gold); }
+.mn-card .tg { font-size: 12px; color: #d9b8ea; min-height: 2.4em; }
+.mn-card .badge {
+  margin-top: 2px; padding: 6px 18px; border-radius: 999px; font-weight: 900; letter-spacing: .1em; font-size: 14px;
+  color: #fff; background: radial-gradient(circle at 50% 35%, #ff7ad0, #e0249a 50%, #8a0a5a);
+  border: 2px solid var(--gold); box-shadow: 0 0 12px rgba(224, 36, 154, .7);
+  animation: mnPulse 1.4s ease-in-out infinite;
+}
+@keyframes mnPulse { 50% { transform: scale(1.06); box-shadow: 0 0 20px rgba(224, 36, 154, .95); } }
+.mn-card:disabled { cursor: default; border-color: rgba(245, 200, 76, .45); }
+.mn-card:disabled img { filter: saturate(.45) brightness(.65); }
+.mn-card:disabled .badge { animation: none; background: rgba(0,0,0,.55); color: #d9b8ea; border-color: rgba(245, 200, 76, .4); box-shadow: none; font-size: 12px; }
+.mn-card .ribbon {
+  position: absolute; top: 14px; right: -6px; padding: 3px 10px; border-radius: 6px 0 0 6px;
+  font-size: 11px; font-weight: 900; letter-spacing: .08em; color: var(--ink);
+  background: linear-gradient(var(--gold-hi), var(--gold)); box-shadow: 0 2px 6px rgba(0,0,0,.5);
+}
+#menuVer { position: static; margin-top: auto; padding-top: 12px; }
+@media (orientation: landscape) and (max-height: 600px) {
+  .mn-inner { gap: 2px; padding-top: calc(var(--sa-top) + 6px); }
+  .mn-title { width: min(30vw, 240px); }
+  .mn-head { margin-bottom: 4px; font-size: 15px; }
+  .mn-list { width: auto; grid-template-columns: repeat(2, 170px); justify-content: center; }
+  .mn-card { padding: 8px 8px 10px; gap: 3px; }
+  .mn-card img { height: 30dvh; aspect-ratio: auto; }
+  .mn-card .tg { display: none; }
+}
+
+/* back-to-menu button in the game */
+#btnMenu {
+  position: absolute; z-index: 5;
+  top: calc(var(--sa-top) + 8px); left: calc(var(--sa-left) + 10px);
+  padding: 7px 14px; border-radius: 999px;
+  border: 2px solid var(--gold); background: rgba(26, 6, 38, .85); color: var(--gold-hi);
+  font-weight: bold; font-size: 13px; letter-spacing: .08em;
+  box-shadow: 0 3px 10px rgba(0,0,0,.5);
+}
+#btnMenu:active { transform: scale(.95); }
 @keyframes stLeave { to { opacity: 0; transform: scale(1.06); } }
 @media (orientation: landscape) and (max-height: 600px) {
   .st-title { margin-top: -14dvh; }
@@ -429,6 +504,7 @@ dialog::backdrop { background: rgba(5,0,10,.7); }
 
 @media (prefers-reduced-motion: reduce) {
   .st-title { animation: none; }
+  .mn-card .badge { animation: none; }
   .sb1, .sb2, .sb3, .stt1, .stt2, .stt3 { animation-duration: 12s; }
   .st-tap { animation-duration: 2.4s; }
   #machineArt, #machine.spinning #machineArt, #machine.celebrate #machineArt { --mfDur: 12s; }

@@ -498,7 +498,7 @@
     });
 
     window.addEventListener('resize', () => { if (!state.spinning) measure(); });
-    document.addEventListener('keydown', e => { if (e.code === 'Space' && !document.querySelector('dialog[open]')) { e.preventDefault(); onSpinTap(); } });
+    document.addEventListener('keydown', e => { if (e.code === 'Space' && !$('app').hidden && !document.querySelector('dialog[open]')) { e.preventDefault(); onSpinTap(); } });
     // stop autoplay when the app is backgrounded
     document.addEventListener('visibilitychange', () => { if (document.hidden && state.auto) { state.auto = false; updateHud(); } });
 
@@ -508,10 +508,20 @@
 
   window.GemRoyale = { isBusy: () => state.spinning || state.freeSpins > 0, toast };
 
+  // ---------- machines ----------
+  // Every slot machine in the gallery. `ready: false` shows as "Coming soon" in the menu.
+  // Gem Royale is the game in this file; new machines get their own entry here.
+  const MACHINES = [
+    { id: 'gem-royale', name: 'Gem Royale', tagline: 'Sparkling gems · 20 lines · free spins',
+      thumb: 'assets/menu/gem-royale.webp', ready: true },
+    { id: 'unicorn-royale', name: 'Unicorn Royale', tagline: 'Unicorns, rainbows & a jackpot',
+      thumb: 'assets/menu/unicorn-royale.webp', ready: false },
+  ];
+
   // ---------- startup ----------
   // 1) Show the start screen as soon as its own artwork is loaded.
   // 2) Keep loading the game artwork behind it.
-  // 3) On tap: start the game (waiting for the game artwork if it's still loading).
+  // 3) Tap -> machine menu -> pick a machine -> game (waiting for its artwork if needed).
   const ver = window.AppUpdate ? window.AppUpdate.version : '';
   const preload = srcs => Promise.all(srcs.map(src => new Promise(res => {
     const i = new Image(); i.onload = i.onerror = res; i.src = src;
@@ -519,20 +529,68 @@
   const startImgs = [0, 1, 2, 3].flatMap(i => [`assets/start/bg-${i}.webp?v=${ver}`, `assets/start/title-${i}.webp?v=${ver}`]);
   const gameImgs = [0, 1, 2, 3].map(i => `assets/machine-${i}.webp?v=${ver}`).concat('assets/gems.webp');
   ['settings', 'info', 'sound', 'spin', 'minus', 'plus', 'full'].forEach(n => gameImgs.push(`assets/btn/${n}.webp`));
+  const menuImgs = MACHINES.map(m => `${m.thumb}?v=${ver}`);
 
   const gameReady = preload(gameImgs);
-  let started = false;
+  preload(menuImgs);
+  let started = false, initialised = false;
 
-  async function startGame() {
+  function buildMenu() {
+    const list = $('machineList');
+    list.replaceChildren();
+    MACHINES.forEach(m => {
+      const card = document.createElement('button');
+      card.className = 'mn-card';
+      card.dataset.machine = m.id;
+      card.disabled = !m.ready;
+      card.setAttribute('aria-label', m.ready ? `Play ${m.name}` : `${m.name}, coming soon`);
+      const img = document.createElement('img');
+      img.src = `${m.thumb}?v=${ver}`; img.alt = ''; img.draggable = false;
+      const nm = document.createElement('div'); nm.className = 'nm'; nm.textContent = m.name;
+      const tg = document.createElement('div'); tg.className = 'tg'; tg.textContent = m.tagline;
+      const badge = document.createElement('div'); badge.className = 'badge'; badge.textContent = m.ready ? 'PLAY' : 'COMING SOON';
+      card.append(img, nm, tg, badge);
+      if (!m.ready) { const r = document.createElement('div'); r.className = 'ribbon'; r.textContent = 'NEW'; card.append(r); }
+      card.addEventListener('click', () => { if (m.ready) openMachine(m.id); });
+      list.appendChild(card);
+    });
+    $('menuVer').textContent = 'v' + (ver || '?');
+  }
+
+  function showMenu() {
+    const menu = $('menuScreen');
+    menu.hidden = false;
+    menu.classList.remove('entering'); void menu.offsetWidth; menu.classList.add('entering');
+    $('app').hidden = true;
+  }
+
+  async function openMachine(id) {
+    if (id !== 'gem-royale') return;          // only Gem Royale exists so far
+    const card = document.querySelector(`.mn-card[data-machine="${id}"] .badge`);
+    if (card) card.textContent = 'LOADING…';
+    await gameReady;
+    if (card) card.textContent = 'PLAY';
+    $('app').hidden = false;
+    $('menuScreen').hidden = true;
+    if (!initialised) { initialised = true; init(); } else { measure(); }
+  }
+
+  // Leave the game for the menu (not mid-spin or during free spins)
+  function backToMenu() {
+    if (state.spinning || state.freeSpins > 0) { toast(state.freeSpins > 0 ? 'Finish your free spins first' : 'Wait for the reels to stop'); return; }
+    if (state.auto) { state.auto = false; updateHud(); }
+    document.querySelectorAll('dialog[open]').forEach(closeDialog);
+    clearPresentation();
+    showMenu();
+  }
+  $('btnMenu').addEventListener('click', backToMenu);
+  $('btnToMenu').addEventListener('click', backToMenu);
+
+  function leaveStart() {
     if (started) return;
     started = true;
     const screen = $('startScreen');
-    const tap = $('startTap');
-    tap.textContent = 'Loading…';
-    tap.classList.add('wait');
-    await gameReady;
-    $('app').hidden = false;
-    init();
+    showMenu();
     screen.classList.add('leaving');
     setTimeout(() => { screen.hidden = true; }, 500);
   }
@@ -540,14 +598,15 @@
   preload(startImgs).then(() => {
     const screen = $('startScreen');
     $('startVer').textContent = 'v' + (ver || '?');
+    buildMenu();
     $('loading').hidden = true;
     screen.hidden = false;
-    screen.addEventListener('click', startGame);
+    screen.addEventListener('click', leaveStart);
     document.addEventListener('keydown', function onKey(e) {
       if (e.code === 'Space' || e.code === 'Enter') {
         e.preventDefault();
         document.removeEventListener('keydown', onKey);
-        startGame();
+        leaveStart();
       }
     });
   });
