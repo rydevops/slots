@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="app-version" content="__BUILD__">
+  <title>Gem Royale</title>
+  <meta name="theme-color" content="#1a0626">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Gem Royale">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="css/style.css?v=__BUILD__">
+</head>
+<body>
+  <div id="loading"><div class="spinner"></div><p>Polishing gems…</p></div>
+
+  <main id="app" hidden>
+    <div id="stage">
+      <div id="machine">
+        <img src="assets/machine.jpg?v=__BUILD__" alt="" draggable="false" id="machineImg">
+        <div id="reelWindow">
+          <div class="reel"><div class="strip"></div></div>
+          <div class="reel"><div class="strip"></div></div>
+          <div class="reel"><div class="strip"></div></div>
+          <div class="reel"><div class="strip"></div></div>
+          <div class="reel"><div class="strip"></div></div>
+          <svg id="lineLayer" viewBox="0 0 500 300" preserveAspectRatio="none"></svg>
+          <div id="winLabel" hidden></div>
+          <div id="bigWin" hidden><div class="bw-title"></div><div class="bw-amount"></div></div>
+        </div>
+        <!-- Hotspots over the artwork's buttons -->
+        <button class="hot" id="hotSettings" style="left:9.5%;top:73.3%;width:6.8%;height:7.6%" aria-label="Settings"></button>
+        <button class="hot" id="hotInfo" style="left:18.1%;top:73.3%;width:6.8%;height:7.6%" aria-label="Paytable"></button>
+        <button class="hot" id="hotSound" style="left:27.2%;top:73.5%;width:9.6%;height:6.8%" aria-label="Sound"></button>
+        <button class="hot" id="hotSpin" style="left:39.4%;top:70.5%;width:20.1%;height:11.6%" aria-label="Spin"></button>
+        <button class="hot" id="hotMinus" style="left:63.3%;top:73.8%;width:6.1%;height:6.4%" aria-label="Decrease bet"></button>
+        <button class="hot" id="hotPlus" style="left:76.1%;top:73.8%;width:6.1%;height:6.4%" aria-label="Increase bet"></button>
+        <button class="hot" id="hotFull" style="left:84.5%;top:73.3%;width:6.8%;height:7.6%" aria-label="Full screen"></button>
+      </div>
+    </div>
+
+    <section id="panel">
+      <div id="hud">
+        <div class="meter"><span class="lbl">Credits</span><span class="val" id="credits">0</span></div>
+        <div class="meter"><span class="lbl">Total Bet</span><span class="val" id="bet">0</span></div>
+        <div class="meter win"><span class="lbl" id="winLbl">Win</span><span class="val" id="win">0</span></div>
+      </div>
+      <div id="fsBar" hidden>FREE SPINS <span id="fsCount">0</span></div>
+      <div id="controls">
+        <button class="ctl round" id="btnHelp" aria-label="Paytable and help">?</button>
+        <div class="betbox">
+          <button class="ctl round" id="btnMinus" aria-label="Decrease bet">−</button>
+          <div class="betlbl"><small>Line bet</small><b id="lineBet">1</b></div>
+          <button class="ctl round" id="btnPlus" aria-label="Increase bet">+</button>
+        </div>
+        <button class="ctl" id="btnAuto" aria-pressed="false">AUTO</button>
+        <button id="btnSpin" aria-label="Spin">SPIN</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- Paytable / help -->
+  <dialog id="helpDlg">
+    <div class="dlg-head"><h2>Paytable</h2><button class="close" data-close aria-label="Close">✕</button></div>
+    <div class="dlg-body" id="helpBody"></div>
+  </dialog>
+
+  <!-- Settings -->
+  <dialog id="settingsDlg">
+    <div class="dlg-head"><h2>Settings</h2><button class="close" data-close aria-label="Close">✕</button></div>
+    <div class="dlg-body">
+      <p class="muted">Gem Royale is a free-play game. Credits have no cash value.</p>
+      <button class="wide" id="btnRefill">Reset credits to 2,000</button>
+      <button class="wide" id="btnUpdate">Check for updates</button>
+      <p class="muted small">Version <span id="verLbl"></span></p>
+    </div>
+  </dialog>
+
+  <div id="toast" hidden></div>
+  <div id="updating" hidden><div class="spinner"></div><p>Updating to the latest version…</p></div>
+
+  <script src="js/engine.js?v=__BUILD__"></script>
+  <script src="js/update.js?v=__BUILD__"></script>
+  <script src="js/app.js?v=__BUILD__"></script>
+</body>
+</html>
