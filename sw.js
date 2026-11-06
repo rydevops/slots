@@ -16,8 +16,7 @@ const SHELL = [
   'icons/icon-192.png',
   'icons/icon-512.png',
 ];
-['settings', 'info', 'sound', 'spin', 'minus', 'plus', 'full'].forEach(n =>
-  ['n', 'p', 'a'].forEach(st => SHELL.push(`assets/btn/${n}-${st}.webp`)));
+['settings', 'info', 'sound', 'spin', 'minus', 'plus', 'full'].forEach(n => SHELL.push(`assets/btn/${n}.webp`));
 
 self.addEventListener('install', event => {
   event.waitUntil(

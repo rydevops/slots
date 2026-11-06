@@ -162,12 +162,21 @@ button { font: inherit; color: inherit; touch-action: manipulation; cursor: poin
   padding: 0; border: 0; background: none;
   border-radius: 50%;
 }
-.mbtn::before {           /* the artwork: sprite is padded 18% on each side for its glow */
+/* Each button image is a horizontal strip of the 4 frames from the supplied sheet:
+   0 = normal, 1 = bright sparkle, 2 = soft shine, 3 = magenta glow.
+   Frames are padded 28% on every side so the glow isn't clipped. */
+.mbtn::before {
   content: ""; position: absolute;
-  left: -18%; right: -18%; top: -18%; bottom: -18%;
-  background: var(--n) center / 100% 100% no-repeat;
+  left: -28%; right: -28%; top: -28%; bottom: -28%;
+  background-image: var(--strip);
+  background-repeat: no-repeat;
+  background-size: 400% 100%;
+  background-position: 0% 0;
   pointer-events: none;
-  transition: transform .08s;
+  transition: transform .1s ease-out;
+  /* idle: an occasional shimmer that runs through the sparkle frames */
+  animation: btnShimmer 4.2s step-end infinite;
+  animation-delay: var(--delay, 0s);
 }
 .mbtn::after {            /* larger invisible touch target */
   content: ""; position: absolute; left: -12%; right: -12%; top: -45%; bottom: -45%;
@@ -175,11 +184,53 @@ button { font: inherit; color: inherit; touch-action: manipulation; cursor: poin
 #btnMinus::after { left: -25%; right: -60%; }
 #btnPlus::after  { left: -60%; right: -25%; }
 #btnSpin::after  { top: -5%; bottom: -10%; }
-.mbtn:active::before, .mbtn.pressed::before { background-image: var(--p); transform: scale(.95); }
-.mbtn.on::before { background-image: var(--a); }
-#btnSpin.on::before { animation: spinGlow .9s ease-in-out infinite alternate; }
-@keyframes spinGlow { from { filter: brightness(1); } to { filter: brightness(1.25); } }
-.mbtn:disabled::before { filter: grayscale(.8) brightness(.6); }
+
+@keyframes btnShimmer {
+  0%   { background-position-x: 0%; }
+  72%  { background-position-x: 33.333%; filter: brightness(1.18); }
+  76%  { background-position-x: 66.667%; filter: brightness(1.1); }
+  80%  { background-position-x: 33.333%; filter: brightness(1.22); }
+  84%  { background-position-x: 66.667%; filter: brightness(1.08); }
+  88%  { background-position-x: 0%; filter: none; }
+}
+/* SPIN invites a tap: shimmers more often and gently breathes */
+#btnSpin::before { animation: btnShimmer 2.6s step-end infinite, breathe 2.6s ease-in-out infinite; }
+@keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.04); } }
+
+/* desktop hover */
+@media (hover: hover) {
+  .mbtn:not(:disabled):hover::before, #btnSpin:not(.on):hover::before { animation: none; background-position-x: 33.333%; }
+}
+
+/* pressed: jump to the glow frame and sink in */
+.mbtn.pressed::before {
+  animation: none !important;
+  background-position-x: 100%;
+  transform: scale(.92);
+  filter: drop-shadow(0 0 5px rgba(255, 60, 200, 1)) drop-shadow(0 0 12px rgba(255, 60, 200, .85)) brightness(1.15);
+  transition: transform .05s;
+}
+/* tap release: a quick glow → sparkle → normal flash */
+.mbtn.tapped::before, #btnSpin.tapped::before { animation: btnTap .35s step-end 1; }
+@keyframes btnTap {
+  0%   { background-position-x: 100%; transform: scale(1.06); filter: drop-shadow(0 0 5px rgba(255, 60, 200, 1)) drop-shadow(0 0 14px rgba(255, 60, 200, .9)) brightness(1.2); }
+  40%  { background-position-x: 33.333%; transform: scale(1.03); filter: drop-shadow(0 0 4px rgba(255, 60, 200, .6)) brightness(1.15); }
+  75%  { background-position-x: 66.667%; transform: scale(1); filter: none; }
+  100% { background-position-x: 0%; }
+}
+
+/* active (spinning / autoplay / free spins): pulse between glow and sparkle frames */
+.mbtn.on::before, #btnSpin.on::before { animation: btnActive .7s step-end infinite, breathe 1.4s ease-in-out infinite; }
+@keyframes btnActive {
+  0%   { background-position-x: 100%; filter: drop-shadow(0 0 5px rgba(255, 60, 200, 1)) drop-shadow(0 0 14px rgba(255, 60, 200, .9)) brightness(1.2); }
+  50%  { background-position-x: 33.333%; filter: drop-shadow(0 0 4px rgba(80, 220, 255, .9)) drop-shadow(0 0 10px rgba(255, 60, 200, .6)) brightness(1.1); }
+}
+
+.mbtn:disabled::before {
+  animation: none;
+  background-position-x: 66.667%;
+  filter: grayscale(.8) brightness(.55);
+}
 .mbtn:disabled { cursor: default; }
 
 #fsBar, #autoChip {
@@ -264,4 +315,6 @@ dialog::backdrop { background: rgba(5,0,10,.7); }
 
 @media (prefers-reduced-motion: reduce) {
   .cell.hit .gem { animation: sparkle 1.2s steps(5) infinite; }
+  .mbtn::before, #btnSpin::before { animation: none; }
+  .mbtn.on::before, #btnSpin.on::before { animation: btnActive 1.4s step-end infinite; }
 }

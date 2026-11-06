@@ -35,7 +35,7 @@ Gem Royale is a free-play gem slot machine. It is built as a PWA (Progressive We
 | `manifest.webmanifest` | PWA manifest. |
 | `assets/machine.webp` | Machine artwork (1184×1024, cropped from the owner's 1536×1024 image). The screen area is transparent. |
 | `assets/gems.webp` | Gem sprite sheet: 5 columns (animation frames) × 15 rows (gems), each cell 180×104. |
-| `assets/btn/<name>-<state>.webp` | Button sprites. Names: `settings, info, sound, spin, minus, plus, full`. States: `n` = normal, `p` = pressed, `a` = active glow. Each sprite has 18% padding on every side for its glow. |
+| `assets/btn/<name>.webp` | Button sprite strips (names: `settings, info, sound, spin, minus, plus, full`). Each is 4 equal frames side by side, taken from the owner's button sheet: 0 = normal, 1 = bright sparkle, 2 = soft shine, 3 = magenta glow. Each frame has 28% padding on every side for its glow. |
 | `assets/bg.jpg` | Blurred casino background for the page. |
 | `icons/` | App icons (180 / 192 / 512). |
 
@@ -44,7 +44,13 @@ Gem Royale is a free-play gem slot machine. It is built as a PWA (Progressive We
 - `#machine` keeps the artwork's aspect ratio (1184/1024) and is a CSS container (`container-type: inline-size`), so text inside uses `cqw` units.
 - `#reelWindow` sits **under** `#machineImg`, filling the transparent screen hole: left 17.65%, top 27.54%, width 64.61%, height 31.64%.
 - The `.disp` elements (BET / BALANCE / WIN) are positioned over the printed displays.
-- The `.mbtn` buttons are positioned over the printed buttons. Each one takes its artwork from the CSS variables `--n/--p/--a`, which `app.js` sets from `data-sprite`. `::after` enlarges the touch target.
+- The `.mbtn` buttons are positioned over the printed buttons. `app.js` sets `--strip` from `data-sprite`, and `::before` draws the strip at `background-size: 400% 100%`. Animations step `background-position-x` through 0 / 33.333 / 66.667 / 100%:
+  - idle: an occasional, staggered shimmer (`btnShimmer`); SPIN shimmers more often and gently "breathes";
+  - `.pressed`: glow frame and sink in. JS adds it on pointerdown, because iOS doesn't reliably apply `:active`;
+  - `.tapped`: a glow → sparkle → normal flash on release;
+  - `.on`: SPIN pulses between glow and sparkle while spinning, in autoplay or during free spins;
+  - disabled: dimmed frame 2, no animation.
+- `::after` enlarges the touch target.
 - If the machine artwork changes, re-measure these percentages. Coordinates are in the cropped 1184×1024 space: the original x minus 176.
 
 ## Game rules and math
