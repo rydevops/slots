@@ -27,6 +27,7 @@ Gem Royale is a free-play gem slot machine. It is built as a PWA (Progressive We
 |------|---------|
 | `index.html` | Page shell: machine, reel window, displays, sprite buttons, help and settings dialogs. Holds `<meta name="app-version" content="__BUILD__">`. |
 | `css/style.css` | All styling. Overlay positions are percentages of the machine artwork. |
+| `tools/simulate.js` | Payout and bankroll simulator for `js/engine.js` (not deployed). |
 | `js/engine.js` | Game math only (no DOM): symbols, weights, payouts, 20 paylines, `spinGrid()`, `evaluate()`. Also loadable in Node for simulations. |
 | `js/app.js` | UI and game loop: reel animation (Web Animations API), win presentation, free spins, autoplay, paytable builder, persistence. |
 | `js/update.js` | Version check, service worker registration, update-reload logic. |
@@ -57,26 +58,19 @@ Gem Royale is a free-play gem slot machine. It is built as a PWA (Progressive We
 
 - 5 reels × 3 rows, 20 fixed paylines (`Engine.LINES`). Line wins pay left to right from reel 1, for 3 or more in a row; only the best win per line is paid.
 - **Diamond (id 2) is Wild**: it substitutes for every gem except the Opal, and also has its own payouts.
-- **Opal (id 9) is Scatter**: it pays anywhere, multiplied by the total bet (3/4/5 = 2×/10×/50×), and awards 8/12/20 free spins, which can retrigger.
+- **Opal (id 9) is Scatter**: it pays anywhere, multiplied by the total bet (3/4/5 = 2×/5×/20×), and awards 8/12/20 free spins, which can retrigger.
 - Line bets are `[1, 2, 5, 10, 25, 50]`; total bet = line bet × 20. The player starts with 2,000 credits and is refilled for free at 0.
-- Each cell is drawn independently using the symbol weights `w` (there are no reel strips). The simulated RTP (return to player) is about 96–98%. After changing weights or payouts, re-simulate (see below) and keep the RTP between 94 and 99%.
+- Each cell is drawn independently using the symbol weights `w` (there are no reel strips).
+- **Tuning target: a forgiving, low-volatility free-play game.** The owner wants players to win often and only run out of credits when they bet big on a small balance. The current table measures:
+  - RTP (return to player) of about 103%, with about 49% of paid spins winning something and about 30% paying back at least the total bet; volatility is about 2.0 (standard deviation per spin, in total bets).
+  - Starting at 2,000 credits, players run out within 300 spins about 0% of the time at bet 20, about 7% at bet 40, and about 46% at bet 100. Bets of 200 or more are meant to stay risky.
+- The Diamond's weight (`w: 12`) is the main lever for how often spins win, because it substitutes on every line. The 3-of-a-kind payouts carry most of the return; 4- and 5-of-a-kind are kept modest to keep volatility down.
+- After changing weights or payouts, run `node tools/simulate.js`. Keep RTP between 101% and 106%, volatility around 2.0–2.5, and the bet-20 and bet-40 bust rates (from 2,000 credits) at or below 10%.
 - Win presentation: all winning lines at once, then each win in turn. A win of 15× the bet or more shows BIG WIN, 40× MEGA WIN, and 100× EPIC WIN.
 - Controls: tap SPIN to spin, tap again while the reels move to stop them quickly, and press-and-hold SPIN to start autoplay (tap SPIN to stop it). **i** opens the paytable, ⚙ opens settings (reset credits, check for updates, version), and the full-screen button shows a hint on iOS.
 - State is saved in `localStorage` under the key `gem-royale-state-v1`.
 
-Quick RTP simulation:
-```js
-// node sim.js
-const E = require('./js/engine.js');
-let bet = 0, won = 0;
-for (let i = 0; i < 1e6; i++) {
-  bet += 20;
-  let r = E.evaluate(E.spinGrid(), 1); won += r.total;
-  let f = r.freeSpins;
-  while (f-- > 0) { const q = E.evaluate(E.spinGrid(), 1); won += q.total; f += q.freeSpins; }
-}
-console.log('RTP', (won / bet * 100).toFixed(2) + '%');
-```
+Simulation: `node tools/simulate.js` prints RTP, hit rates and volatility, plus how often players run out of credits at each bet, starting from 2,000 and from 300 credits. Use `SPINS=200000 SESSIONS=500` for a quicker run. `tools/` is not deployed.
 
 ## Versioning and auto-update
 

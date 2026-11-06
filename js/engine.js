@@ -2,21 +2,21 @@
 (function (root) {
   // Sprite row index in assets/gems.webp → symbol definition
   const SYMBOLS = [
-    { id: 0,  name: 'Emerald',     tier: 'high', pays: { 3: 50, 4: 250, 5: 1000 }, w: 3 },
-    { id: 1,  name: 'Ruby',        tier: 'high', pays: { 3: 40, 4: 200, 5: 800 }, w: 3 },
-    { id: 2,  name: 'Diamond',     tier: 'wild', pays: { 3: 100, 4: 500, 5: 2500 }, w: 7, wild: true },
-    { id: 3,  name: 'Aquamarine',  tier: 'low',  pays: { 3: 12, 4: 40, 5: 150 },  w: 8 },
-    { id: 4,  name: 'Tanzanite',   tier: 'low',  pays: { 3: 12, 4: 40, 5: 150 },  w: 8 },
-    { id: 5,  name: 'Sapphire',    tier: 'high', pays: { 3: 30, 4: 150, 5: 600 }, w: 4 },
-    { id: 6,  name: 'Amethyst',    tier: 'mid',  pays: { 3: 20, 4: 80, 5: 300 }, w: 5 },
-    { id: 7,  name: 'Pink Heart',  tier: 'mid',  pays: { 3: 25, 4: 100, 5: 400 }, w: 5 },
-    { id: 8,  name: 'Garnet',      tier: 'mid',  pays: { 3: 25, 4: 100, 5: 400 }, w: 5 },
-    { id: 9,  name: 'Opal',        tier: 'scatter', pays: { 3: 2, 4: 10, 5: 50 }, w: 2, scatter: true },
-    { id: 10, name: 'Citrine',     tier: 'low',  pays: { 3: 10, 4: 30, 5: 120 },  w: 9 },
-    { id: 11, name: 'Fire Topaz',  tier: 'mid',  pays: { 3: 20, 4: 80, 5: 300 }, w: 5 },
-    { id: 12, name: 'Peridot',     tier: 'low',  pays: { 3: 10, 4: 30, 5: 120 },  w: 9 },
-    { id: 13, name: 'Blue Topaz',  tier: 'low',  pays: { 3: 8, 4: 25, 5: 100 },  w: 10 },
-    { id: 14, name: 'Morganite',   tier: 'low',  pays: { 3: 8, 4: 25, 5: 100 },  w: 10 },
+    { id: 0,  name: 'Emerald',     tier: 'high', pays: { 3: 35, 4: 60, 5: 150 }, w: 3 },
+    { id: 1,  name: 'Ruby',        tier: 'high', pays: { 3: 30, 4: 50, 5: 120 }, w: 3 },
+    { id: 2,  name: 'Diamond',     tier: 'wild', pays: { 3: 40, 4: 100, 5: 300 }, w: 12, wild: true },
+    { id: 3,  name: 'Aquamarine',  tier: 'low',  pays: { 3: 11, 4: 13, 5: 30 }, w: 8 },
+    { id: 4,  name: 'Tanzanite',   tier: 'low',  pays: { 3: 11, 4: 13, 5: 30 }, w: 8 },
+    { id: 5,  name: 'Sapphire',    tier: 'high', pays: { 3: 22, 4: 35, 5: 100 }, w: 4 },
+    { id: 6,  name: 'Amethyst',    tier: 'mid',  pays: { 3: 14, 4: 18, 5: 50 }, w: 5 },
+    { id: 7,  name: 'Pink Heart',  tier: 'mid',  pays: { 3: 18, 4: 25, 5: 60 }, w: 5 },
+    { id: 8,  name: 'Garnet',      tier: 'mid',  pays: { 3: 18, 4: 25, 5: 60 }, w: 5 },
+    { id: 9,  name: 'Opal',        tier: 'scatter', pays: { 3: 2, 4: 5, 5: 20 }, w: 2, scatter: true },
+    { id: 10, name: 'Citrine',     tier: 'low',  pays: { 3: 9, 4: 11, 5: 25 }, w: 9 },
+    { id: 11, name: 'Fire Topaz',  tier: 'mid',  pays: { 3: 14, 4: 18, 5: 50 }, w: 5 },
+    { id: 12, name: 'Peridot',     tier: 'low',  pays: { 3: 9, 4: 11, 5: 25 }, w: 9 },
+    { id: 13, name: 'Blue Topaz',  tier: 'low',  pays: { 3: 6, 4: 9, 5: 20 }, w: 10 },
+    { id: 14, name: 'Morganite',   tier: 'low',  pays: { 3: 6, 4: 9, 5: 20 }, w: 10 },
   ];
   const WILD = 2, SCATTER = 9;
   const FREE_SPINS = { 3: 8, 4: 12, 5: 20 };
