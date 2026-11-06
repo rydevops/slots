@@ -43,7 +43,7 @@ Gem Royale is a free-play gem slot machine. It is built as a PWA (Progressive We
 | `version.json` | `{ "version": "x.y.z" }`. This is the source of truth for the version; the app compares it with the version it is running. |
 | `.nojekyll` | Stops GitHub's branch-based Pages build from running Jekyll over the repo. |
 | `manifest.webmanifest` | PWA manifest. |
-| `assets/machine.webp` | Machine artwork (1184×1024, cropped from the owner's 1536×1024 image). The screen area is transparent. |
+| `assets/machine-0..3.webp` | The 4 machine animation frames from the owner's 2×2 frame sheet (0 = normal, 1 = cyan glow + lit title, 2 = strong cyan glow, 3 = bright). Each frame is registered to frame 0 (offsets +639.5/+596 px; same scale), clipped to its own quadrant, and scaled about 1.79× onto a 1184×1024 transparent canvas. The screen hole is transparent. The source art is about half the resolution of the old single machine image, so it is slightly soft; ask the owner for higher-resolution frames if that matters. |
 | `assets/gems.webp` | Gem sprite sheet: 5 columns (animation frames) × 15 rows (gems), each cell 180×104. Rendered as `.gem` (window, overflow hidden) > `.gem-row` (500%×1500%, `translateY` to the gem's row) > `.gem-frames` (`translateX` steps through the frames on a win). |
 | `assets/btn/<name>.webp` | Button sprite strips (names: `settings, info, sound, spin, minus, plus, full`). Each is 4 equal frames side by side, taken from the owner's button sheet: 0 = normal, 1 = bright sparkle, 2 = soft shine, 3 = magenta glow. Each frame has 28% padding on every side for its glow. |
 | `assets/bg.jpg` | Blurred casino background for the page. |
@@ -52,8 +52,9 @@ Gem Royale is a free-play gem slot machine. It is built as a PWA (Progressive We
 ## Layout of the machine
 
 - `#machine` keeps the artwork's aspect ratio (1184/1024) and is a CSS container (`container-type: inline-size`), so text inside uses `cqw` units.
-- `#reelWindow` sits **under** `#machineImg`, filling the transparent screen hole: left 17.65%, top 27.54%, width 64.61%, height 31.64%.
-- The `.disp` elements (BET / BALANCE / WIN) are positioned over the printed displays.
+- `#machineArt` holds the 4 frame `<img>`s. Frame 0 is always visible; frames 1–3 crossfade over it in turn (0 → 1 → 2 → 3 → 0), using opacity keyframes `mf1/mf2/mf3`. The cycle length is `--mfDur`: 4.8s idle, 1.6s while `#machine.spinning` (spinning, autoplay or free spins), and 0.8s during `#machine.celebrate` (3 s after a win of 5× the bet or more). Reduce Motion slows it to 12s. A mask fades out the bottom of the cabinet, where the art is cut off.
+- `#reelWindow` sits **under** `#machineArt`, filling the transparent screen hole: left 23.14%, top 28.22%, width 55.32%, height 27.83%.
+- The `.disp` elements (BET / BALANCE / WIN) are positioned over the printed displays (inline styles in `index.html`; text is `3.3cqw`).
 - The `.mbtn` buttons are positioned over the printed buttons. `app.js` adds `<span.art><span.frames>` inside each one. `.art` is the visible window (28% padding each side for the glow, overflow hidden), and `.frames` is the 4-frame strip (`width: 400%`). Animations pick a frame with `transform: translateX(0 / -25% / -50% / -75%)`:
   - idle: an occasional, staggered shimmer (`btnShimmer`); SPIN shimmers more often and gently "breathes";
   - `.pressed`: glow frame and sink in. JS adds it on pointerdown, because iOS doesn't reliably apply `:active`;
@@ -61,7 +62,7 @@ Gem Royale is a free-play gem slot machine. It is built as a PWA (Progressive We
   - `.on`: SPIN pulses between glow and sparkle while spinning, in autoplay or during free spins;
   - disabled: dimmed frame 2, no animation.
 - `::after` enlarges each button's touch target.
-- If the machine artwork changes, re-measure these percentages. Coordinates are in the cropped 1184×1024 space: the original x minus 176.
+- If the machine artwork changes, re-measure the screen, display and button percentages on the 1184×1024 canvas: find the alpha-0 hole, and the dark display boxes and button rings by scanning pixel rows and columns. Then compare a screenshot with the sprite buttons hidden against one with them shown.
 
 ## Game rules and math
 

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-  <meta name="app-version" content="1.4.0">
+  <meta name="app-version" content="1.5.0">
   <title>Gem Royale</title>
   <meta name="theme-color" content="#1a0626">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -13,7 +13,7 @@
   <link rel="apple-touch-icon" href="icons/icon-180.png">
   <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="css/style.css?v=1.4.0">
+  <link rel="stylesheet" href="css/style.css?v=1.5.0">
 </head>
 <body>
   <div id="loading"><div class="spinner"></div><p>Polishing gems…</p></div>
@@ -33,21 +33,27 @@
           <div id="winLabel" hidden></div>
           <div id="bigWin" hidden><div class="bw-title"></div><div class="bw-amount"></div></div>
         </div>
-        <img src="assets/machine.webp?v=1.4.0" alt="" draggable="false" id="machineImg">
+        <!-- Machine artwork: 4 animation frames, layered and cross-faded in a cycle -->
+        <div id="machineArt" aria-hidden="true">
+          <img class="mf mf0" src="assets/machine-0.webp?v=1.5.0" alt="" draggable="false">
+          <img class="mf mf1" src="assets/machine-1.webp?v=1.5.0" alt="" draggable="false">
+          <img class="mf mf2" src="assets/machine-2.webp?v=1.5.0" alt="" draggable="false">
+          <img class="mf mf3" src="assets/machine-3.webp?v=1.5.0" alt="" draggable="false">
+        </div>
 
         <!-- Displays printed on the machine -->
-        <div class="disp" id="dispBet"   style="left:10.30%;top:66.21%;width:24.32%;height:6.25%"><span id="bet">0</span></div>
-        <div class="disp" id="dispBal"   style="left:36.49%;top:66.21%;width:27.03%;height:6.25%"><span id="credits">0</span></div>
-        <div class="disp win" id="dispWin" style="left:65.54%;top:66.21%;width:24.16%;height:6.25%"><span id="win">0</span></div>
+        <div class="disp" id="dispBet"   style="left:16.72%;top:62.99%;width:20.35%;height:4.88%"><span id="bet">0</span></div>
+        <div class="disp" id="dispBal"   style="left:39.78%;top:62.99%;width:22.30%;height:4.88%"><span id="credits">0</span></div>
+        <div class="disp win" id="dispWin" style="left:64.86%;top:62.99%;width:20.27%;height:4.88%"><span id="win">0</span></div>
 
         <!-- Sprite buttons placed over the machine's printed buttons -->
-        <button class="mbtn" id="btnSettings" data-sprite="settings" style="left:7.26%;top:77.56%;width:7.26%;height:8.55%" aria-label="Settings"></button>
-        <button class="mbtn" id="btnInfo" data-sprite="info" style="left:16.81%;top:77.83%;width:6.93%;height:8.01%" aria-label="Paytable and help"></button>
-        <button class="mbtn" id="btnSound" data-sprite="sound" style="left:26.18%;top:78.54%;width:9.97%;height:6.20%" aria-label="Sound"></button>
-        <button class="mbtn" id="btnSpin" data-sprite="spin" style="left:38.18%;top:72.75%;width:22.80%;height:16.31%" aria-label="Spin (hold for autoplay)"></button>
-        <button class="mbtn" id="btnMinus" data-sprite="minus" style="left:63.68%;top:78.54%;width:5.41%;height:6.21%" aria-label="Decrease bet"></button>
-        <button class="mbtn" id="btnPlus" data-sprite="plus" style="left:77.62%;top:78.42%;width:5.57%;height:6.45%" aria-label="Increase bet"></button>
-        <button class="mbtn" id="btnFull" data-sprite="full" style="left:85.73%;top:77.49%;width:7.09%;height:8.30%" aria-label="Full screen"></button>
+        <button class="mbtn" id="btnSettings" data-sprite="settings" style="left:13.77%;top:73.34%;width:5.91%;height:6.84%" aria-label="Settings"></button>
+        <button class="mbtn" id="btnInfo" data-sprite="info" style="left:22.13%;top:73.34%;width:5.91%;height:6.84%" aria-label="Paytable and help"></button>
+        <button class="mbtn" id="btnSound" data-sprite="sound" style="left:30.41%;top:73.93%;width:8.19%;height:5.66%" aria-label="Sound"></button>
+        <button class="mbtn" id="btnSpin" data-sprite="spin" style="left:41.05%;top:70.12%;width:19.59%;height:14.45%" aria-label="Spin (hold for autoplay)"></button>
+        <button class="mbtn" id="btnMinus" data-sprite="minus" style="left:62.67%;top:73.93%;width:4.90%;height:5.66%" aria-label="Decrease bet"></button>
+        <button class="mbtn" id="btnPlus" data-sprite="plus" style="left:75.00%;top:73.93%;width:4.90%;height:5.66%" aria-label="Increase bet"></button>
+        <button class="mbtn" id="btnFull" data-sprite="full" style="left:82.52%;top:73.34%;width:5.91%;height:6.84%" aria-label="Full screen"></button>
       </div>
     </div>
     <p id="hint">Tap <b>SPIN</b> to play · Hold <b>SPIN</b> for autoplay · <b>i</b> for paytable · <span id="hintVer"></span></p>
@@ -73,8 +79,8 @@
   <div id="toast" hidden></div>
   <div id="updating" hidden><div class="spinner"></div><p>Updating to the latest version…</p></div>
 
-  <script src="js/engine.js?v=1.4.0"></script>
-  <script src="js/update.js?v=1.4.0"></script>
-  <script src="js/app.js?v=1.4.0"></script>
+  <script src="js/engine.js?v=1.5.0"></script>
+  <script src="js/update.js?v=1.5.0"></script>
+  <script src="js/app.js?v=1.5.0"></script>
 </body>
 </html>
