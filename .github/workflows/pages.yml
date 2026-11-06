@@ -23,13 +23,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Check version numbers are consistent
-        run: |
-          V=$(node -p "require('./version.json').version")
-          echo "Version $V"
-          grep -q "<meta name=\"app-version\" content=\"$V\">" index.html || { echo "index.html app-version meta is not $V - run: node tools/bump-version.js $V"; exit 1; }
-          grep -q "const VERSION = '$V';" sw.js || { echo "sw.js VERSION is not $V - run: node tools/bump-version.js $V"; exit 1; }
-          if grep -o '?v=[^"]*' index.html | grep -v "?v=$V\$"; then echo "index.html has ?v= queries that are not $V"; exit 1; fi
+      - name: Check version (semver, consistent everywhere, changelog entry)
+        run: node tools/bump-version.js --check
 
       - name: Build site
         run: |

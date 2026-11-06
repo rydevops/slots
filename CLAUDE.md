@@ -12,12 +12,12 @@ Gem Royale is a free-play gem slot machine. It is built as a PWA (Progressive We
    Never commit directly to `main`, and never reuse a branch whose PR has already been merged.
 2. **Once the branch has the changes committed and pushed, open a pull request into `main`.** In the PR description, say what changed and how it was tested.
 3. Before opening the PR, run the game locally and check it in an emulated iPhone (see *Testing*). Report any test that failed or was skipped.
-4. **Every change must increment the version number**, using semantic versioning (`MAJOR.MINOR.PATCH`) chosen by the kind of change:
-   - **PATCH** (1.4.0 → 1.4.1): bug fixes and small tweaks with no new behaviour;
-   - **MINOR** (1.4.0 → 1.5.0): new features, visible UI changes, new artwork or payout rebalancing;
-   - **MAJOR** (1.4.0 → 2.0.0): big redesigns, or changes that reset or break saved player data.
+4. **Every change must increment the version number, following [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html)** (`MAJOR.MINOR.PATCH`, optionally with a pre-release tag such as `1.7.0-beta.1`). Pick the part by the kind of change:
+   - **PATCH** (1.6.0 → 1.6.1): backwards-compatible bug fixes and small tweaks with no new behaviour;
+   - **MINOR** (1.6.0 → 1.7.0): backwards-compatible new features, visible UI changes, new artwork or payout rebalancing; resets PATCH to 0;
+   - **MAJOR** (1.6.0 → 2.0.0): incompatible changes, e.g. big redesigns or changes that reset or break saved player data (such as changing the `localStorage` key or format); resets MINOR and PATCH to 0.
 
-   Bump it with `node tools/bump-version.js <patch|minor|major>`; it updates every place the version appears (see *Versioning and auto-update*). Never edit the version numbers by hand. Use one bump per PR: if a branch already has a bump and more changes are added, re-run with an explicit version (e.g. `node tools/bump-version.js 1.5.0`) instead of bumping twice.
+   Bump it with `node tools/bump-version.js <patch|minor|major>`; it updates every place the version appears and adds a `## [x.y.z] - date` section to `CHANGELOG.md`. **Replace that section's TODO with what changed**, in Keep a Changelog style (`### Added / Changed / Fixed / Removed`). Never edit the version numbers by hand. Use one bump per PR: if a branch already has a bump and more changes are added, edit that changelog entry instead of bumping again. If the kind of change grows (e.g. a patch becomes a feature), re-run with an explicit version (e.g. `node tools/bump-version.js 1.7.0`). Run `node tools/bump-version.js --check` before pushing; the deploy runs the same check.
 5. **Always include the new version number in the chat response** to the owner (e.g. "Version: 1.4.0 → 1.5.0"), and put it in the PR title or description too, so the owner can match it with what Settings shows in the app.
 6. Do not add sound until the owner asks for it. The 🔊 button only shows a "coming soon" toast.
 
@@ -35,7 +35,8 @@ Gem Royale is a free-play gem slot machine. It is built as a PWA (Progressive We
 | `index.html` | Page shell: machine, reel window, displays, sprite buttons, help and settings dialogs. Holds `<meta name="app-version" content="x.y.z">` and the `?v=x.y.z` cache-busting queries. |
 | `css/style.css` | All styling. Overlay positions are percentages of the machine artwork. |
 | `tools/simulate.js` | Payout and bankroll simulator for `js/engine.js` (not deployed). |
-| `tools/bump-version.js` | Bumps the version everywhere: `version.json`, the meta tag and `?v=` queries in `index.html`, and `VERSION` in `sw.js`. |
+| `tools/bump-version.js` | Bumps the version everywhere (`version.json`, the meta tag and `?v=` queries in `index.html`, `VERSION` in `sw.js`) and adds a `CHANGELOG.md` section. `--check` validates the SemVer 2.0.0 format, that all copies agree, and that the release has a filled-in changelog entry (used by the deploy workflow). |
+| `CHANGELOG.md` | Release notes for every version, in Keep a Changelog format, newest first. |
 | `js/engine.js` | Game math only (no DOM): symbols, weights, payouts, 20 paylines, `spinGrid()`, `evaluate()`. Also loadable in Node for simulations. |
 | `js/app.js` | UI and game loop: reel animation (Web Animations API), win presentation, free spins, autoplay, paytable builder, persistence. |
 | `js/update.js` | Version check, service worker registration, update-reload logic. |
@@ -46,8 +47,16 @@ Gem Royale is a free-play gem slot machine. It is built as a PWA (Progressive We
 | `assets/machine-0..3.webp` | The 4 machine animation frames from the owner's 2×2 frame sheet (0 = normal, 1 = cyan glow + lit title, 2 = strong cyan glow, 3 = bright). Each frame is registered to frame 0 (offsets +639.5/+596 px; same scale), clipped to its own quadrant, and scaled about 1.79× onto a 1184×1024 transparent canvas. The screen hole is transparent. The source art is about half the resolution of the old single machine image, so it is slightly soft; ask the owner for higher-resolution frames if that matters. |
 | `assets/gems.webp` | Gem sprite sheet: 5 columns (animation frames) × 15 rows (gems), each cell 180×104. Rendered as `.gem` (window, overflow hidden) > `.gem-row` (500%×1500%, `translateY` to the gem's row) > `.gem-frames` (`translateX` steps through the frames on a win). |
 | `assets/btn/<name>.webp` | Button sprite strips (names: `settings, info, sound, spin, minus, plus, full`). Each is 4 equal frames side by side, taken from the owner's button sheet: 0 = normal, 1 = bright sparkle, 2 = soft shine, 3 = magenta glow. Each frame has 28% padding on every side for its glow. |
+| `assets/start/bg-0..3.webp` | Start-screen background frames (832×466 each), cut from the owner's 2×2 casino sheet (tile origins (0,0), (836,0), (0,471), (836,471)). |
+| `assets/start/title-0..3.webp` | "Slots Gallery" title frames (1149×370 each), cut from the owner's 4-row title sheet (frame tops at y = 20, 363, 704, 1047). Each frame is clipped to its own band, and glow is kept only near the artwork, so stray glow noise on the sheet is dropped. |
 | `assets/bg.jpg` | Blurred casino background for the page. |
 | `icons/` | App icons (180 / 192 / 512). |
+
+## Start screen
+
+- `#startScreen` (fixed, above the game) is the first thing shown. Its background and title each crossfade through their 4 frames, reusing the `mf1/mf2/mf3` keyframes (background 4.8 s, title 2.4 s). The title drops in, then gently floats. **TAP TO START** flashes, and the version is shown at the bottom.
+- Startup (end of `app.js`): the start screen appears as soon as its 8 images load, while the game artwork keeps loading behind it (`gameReady`). Tapping anywhere (or pressing Space/Enter) calls `startGame()`. That shows "Loading…" if the game artwork isn't ready yet, then reveals `#app`, runs `init()` and fades the start screen out.
+- The start screen shows on every launch, including after an update reload.
 
 ## Layout of the machine
 
@@ -85,7 +94,8 @@ Simulation: `node tools/simulate.js` prints RTP, hit rates and volatility, plus 
 ## Versioning and auto-update
 
 - The version is a real semantic version stored in the repo: `version.json`, the `app-version` meta tag and the `?v=` queries in `index.html`, and `VERSION` in `sw.js`. Change it only with `node tools/bump-version.js`. The deploy workflow fails if these don't match.
-- Settings (⚙) shows the version prominently, and it also appears at the end of the hint line under the machine.
+- Settings (⚙) shows the version prominently. It also appears at the end of the hint line under the machine and at the bottom of the start screen.
+- `CHANGELOG.md` records every release. The deploy fails if the current version has no changelog section, or if that section still contains `TODO`.
 - Each time the app opens, comes back to the foreground, or comes back online (and every 15 minutes), `update.js` fetches `version.json` with `cache: 'no-store'`. If that version differs from the running one, it clears all caches, updates the service worker and reloads via `?v=<version>`. During a spin or free spins, it waits until the game is idle (`AppUpdate.idle()`). A sessionStorage guard prevents reload loops.
 - If the version isn't bumped, installed apps will not pick up the change. **When you add a new asset or script, also add it to `SHELL` in `sw.js`**, so it is cached for offline use.
 
@@ -94,5 +104,6 @@ Simulation: `node tools/simulate.js` prints RTP, hit rates and volatility, plus 
 ```
 python3 -m http.server 8000      # from the repo root, then open http://localhost:8000
 ```
-- To test the update flow, serve a copy of the site from a temp folder, open it, then run `node tools/bump-version.js patch` inside that copy and trigger a resume (a `visibilitychange` event). The page should reload showing the new version.
+- To test the update flow, serve a copy of the site from a temp folder, open it, then run `node tools/bump-version.js patch` inside that copy and trigger a resume (a `visibilitychange` event). The page should reload to the start screen showing the new version.
+- Tests must tap through the start screen first (wait for `#startScreen:not([hidden])`, then click it) before the game controls exist.
 - Use Playwright with `devices['iPhone 14']`, `devices['iPhone 14 landscape']` and `devices['iPhone SE']`. Check that there are no page errors, the machine fits the screen, spin/bet/autoplay/help work, and nothing overflows horizontally.
