@@ -105,10 +105,14 @@ Gem Royale is a free-play gem slot machine. It is built as a PWA (Progressive We
 
 ### Unicorn Royale
 - Same reels, lines, bets and free-spin rules as Gem Royale. **Rainbow (id 3) is wild; Cloud Castle (id 9) is the scatter.**
-- **JACKPOT (id 14)** pays anywhere and is not substituted by the wild: 3 = 2×, 4 = 10× the total bet; `jackpotAt` (5) or more win the JACKPOT = `jackpotMult` (1,000) × total bet. The amount for the current bet is shown on the machine's JACKPOT plate, and a win plays the 6-frame banner overlay (tap to collect).
-- Measured: RTP ≈ 106% (about 5% of it from the jackpot), ~49% of spins win, ~32% pay back the bet, and a jackpot about every 20,000 spins. Volatility is ~7 because of the 1,000× jackpot. Bust rates from 2,000 credits: 0% / 8% / 50% at bet 20 / 40 / 100. Keep these when retuning.
+- **JACKPOT (id 14)** pays anywhere and is not substituted by the wild: 3 = 2×, 4 = 10× the total bet. `jackpotAt` (5) or more win the **progressive jackpot**:
+  - the pot starts at `jackpotSeed` (10,000) and every *paid* spin adds `jackpotRate` (2%) of its total bet (free spins add nothing);
+  - a win pays the **whole pot, whatever the bet**, then the pot restarts at the seed;
+  - the pot lives in `state.jackpotPool`, is saved as `jackpotPool` in `unicorn-royale-state-v1` (rounded to the cent to avoid float drift), and is passed to `evaluate(grid, lineBet, { jackpotPool })`;
+  - the machine's JACKPOT plate shows the live pot (it glints on each bet), and a win plays the 6-frame banner overlay (tap to collect).
+- Measured (`MACHINE=unicorn-royale LINE_BET=<n> node tools/simulate.js`): a jackpot about every 14,000–16,000 spins; average pot ≈ 15k at bet 20, 39k at bet 100, 335k at bet 1,000. RTP ≈ 107% / 104% / 103% at bet 20 / 100 / 1,000 (the jackpot is 6% / 3% / 2% of it, since the fixed seed matters more at small bets). ~49% of spins win, ~32% pay back the bet. Bust rates from 2,000 credits: 0% / 8–9% / 48% at bet 20 / 40 / 100. Keep these when retuning.
 
-Simulation: `node tools/simulate.js` prints RTP, hit rates and volatility, plus how often players run out of credits at each bet, starting from 2,000 and from 300 credits. Use `SPINS=200000 SESSIONS=500` for a quicker run. `tools/` is not deployed.
+Simulation: `node tools/simulate.js` (options `MACHINE`, `LINE_BET`, `SPINS`, `SESSIONS`) prints RTP, hit rates and volatility, plus how often players run out of credits at each bet, starting from 2,000 and from 300 credits. Use `SPINS=200000 SESSIONS=500` for a quicker run. `tools/` is not deployed.
 
 ## Versioning and auto-update
 

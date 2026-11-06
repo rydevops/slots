@@ -1,5 +1,5 @@
 // Gem Royale service worker. VERSION is set by tools/bump-version.js; changing it renames the offline cache.
-const VERSION = '1.8.0';
+const VERSION = '1.9.0';
 const CACHE = 'gem-royale-' + VERSION;
 const SHELL = [
   './',
