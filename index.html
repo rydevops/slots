@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-  <meta name="app-version" content="__BUILD__">
+  <meta name="app-version" content="1.4.0">
   <title>Gem Royale</title>
   <meta name="theme-color" content="#1a0626">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -13,7 +13,7 @@
   <link rel="apple-touch-icon" href="icons/icon-180.png">
   <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="css/style.css?v=__BUILD__">
+  <link rel="stylesheet" href="css/style.css?v=1.4.0">
 </head>
 <body>
   <div id="loading"><div class="spinner"></div><p>Polishing gems…</p></div>
@@ -33,7 +33,7 @@
           <div id="winLabel" hidden></div>
           <div id="bigWin" hidden><div class="bw-title"></div><div class="bw-amount"></div></div>
         </div>
-        <img src="assets/machine.webp?v=__BUILD__" alt="" draggable="false" id="machineImg">
+        <img src="assets/machine.webp?v=1.4.0" alt="" draggable="false" id="machineImg">
 
         <!-- Displays printed on the machine -->
         <div class="disp" id="dispBet"   style="left:10.30%;top:66.21%;width:24.32%;height:6.25%"><span id="bet">0</span></div>
@@ -50,7 +50,7 @@
         <button class="mbtn" id="btnFull" data-sprite="full" style="left:85.73%;top:77.49%;width:7.09%;height:8.30%" aria-label="Full screen"></button>
       </div>
     </div>
-    <p id="hint">Tap <b>SPIN</b> to play · Hold <b>SPIN</b> for autoplay · <b>i</b> for paytable</p>
+    <p id="hint">Tap <b>SPIN</b> to play · Hold <b>SPIN</b> for autoplay · <b>i</b> for paytable · <span id="hintVer"></span></p>
   </main>
 
   <!-- Paytable / help -->
@@ -63,18 +63,18 @@
   <dialog id="settingsDlg">
     <div class="dlg-head"><h2>Settings</h2><button class="close" data-close aria-label="Close">✕</button></div>
     <div class="dlg-body">
+      <div class="verbox"><span>Version</span><b id="verLbl"></b></div>
       <p class="muted">Gem Royale is a free-play game. Credits have no cash value.</p>
       <button class="wide" id="btnRefill">Reset credits to 2,000</button>
       <button class="wide" id="btnUpdate">Check for updates</button>
-      <p class="muted small">Version <span id="verLbl"></span></p>
     </div>
   </dialog>
 
   <div id="toast" hidden></div>
   <div id="updating" hidden><div class="spinner"></div><p>Updating to the latest version…</p></div>
 
-  <script src="js/engine.js?v=__BUILD__"></script>
-  <script src="js/update.js?v=__BUILD__"></script>
-  <script src="js/app.js?v=__BUILD__"></script>
+  <script src="js/engine.js?v=1.4.0"></script>
+  <script src="js/update.js?v=1.4.0"></script>
+  <script src="js/app.js?v=1.4.0"></script>
 </body>
 </html>

@@ -90,19 +90,25 @@ button { font: inherit; color: inherit; touch-action: manipulation; cursor: poin
   height: var(--cellH, 33.333%);
   display: flex; align-items: center; justify-content: center;
 }
+/* Gem sprite: .gem is the window; .gem-row (500% x 1500% of the sheet) is shifted
+   up to the gem's row; .gem-frames steps across the 5 animation frames with translateX. */
 .gem {
+  position: relative; overflow: hidden;
   height: 100%; flex: 0 0 auto; aspect-ratio: 180 / 104;
-  background-image: url("../assets/gems.webp");
-  background-size: 500% 1500%;
-  background-repeat: no-repeat;
   transition: opacity .25s, transform .25s;
+}
+.gem-row { position: absolute; left: 0; top: 0; width: 500%; height: 1500%; }
+.gem-frames {
+  position: absolute; inset: 0;
+  background: url("../assets/gems.webp") 0 0 / 100% 100% no-repeat;
 }
 .dim .gem { opacity: .28; filter: saturate(.6); }
 .cell.hit .gem {
   opacity: 1; filter: none;
-  animation: sparkle .6s steps(5) infinite, pulse .6s ease-in-out infinite alternate;
+  animation: pulse .6s ease-in-out infinite alternate;
 }
-@keyframes sparkle { from { background-position-x: 0%; } to { background-position-x: 125%; } }
+.cell.hit .gem-frames { animation: sparkle .6s steps(5) infinite; }
+@keyframes sparkle { from { transform: translateX(0); } to { transform: translateX(-100%); } }
 @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.12); } }
 @keyframes pop { from { transform: scale(.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
@@ -162,18 +168,22 @@ button { font: inherit; color: inherit; touch-action: manipulation; cursor: poin
   padding: 0; border: 0; background: none;
   border-radius: 50%;
 }
-/* Each button image is a horizontal strip of the 4 frames from the supplied sheet:
+/* Each button's artwork is a horizontal strip of the 4 frames from the supplied sheet:
    0 = normal, 1 = bright sparkle, 2 = soft shine, 3 = magenta glow.
-   Frames are padded 28% on every side so the glow isn't clipped. */
-.mbtn::before {
-  content: ""; position: absolute;
-  left: -28%; right: -28%; top: -28%; bottom: -28%;
-  background-image: var(--strip);
-  background-repeat: no-repeat;
-  background-size: 400% 100%;
-  background-position: 0% 0;
-  pointer-events: none;
+   Markup (built by app.js):  <button.mbtn> <span.art> <span.frames/> </span> </button>
+   .art is the visible window (28% padding each side for the glow, overflow hidden);
+   .frames is 4x as wide and is moved with translateX to pick a frame. Frames are stepped
+   with transforms, not background-position: iOS Safari doesn't reliably animate
+   background-position-x. */
+.mbtn .art {
+  position: absolute; left: -28%; right: -28%; top: -28%; bottom: -28%;
+  overflow: hidden; pointer-events: none;
   transition: transform .1s ease-out;
+}
+.mbtn .frames {
+  position: absolute; left: 0; top: 0; width: 400%; height: 100%;
+  background-repeat: no-repeat; background-size: 100% 100%;
+  transform: translateX(0);
   /* idle: an occasional shimmer that runs through the sparkle frames */
   animation: btnShimmer 4.2s step-end infinite;
   animation-delay: var(--delay, 0s);
@@ -186,51 +196,67 @@ button { font: inherit; color: inherit; touch-action: manipulation; cursor: poin
 #btnSpin::after  { top: -5%; bottom: -10%; }
 
 @keyframes btnShimmer {
-  0%   { background-position-x: 0%; }
-  72%  { background-position-x: 33.333%; filter: brightness(1.18); }
-  76%  { background-position-x: 66.667%; filter: brightness(1.1); }
-  80%  { background-position-x: 33.333%; filter: brightness(1.22); }
-  84%  { background-position-x: 66.667%; filter: brightness(1.08); }
-  88%  { background-position-x: 0%; filter: none; }
+  0%   { transform: translateX(0); }
+  70%  { transform: translateX(-25%); }
+  74%  { transform: translateX(-50%); }
+  78%  { transform: translateX(-25%); }
+  82%  { transform: translateX(-50%); }
+  86%  { transform: translateX(-25%); }
+  90%  { transform: translateX(0); }
+}
+/* brightness lift that accompanies the shimmer, on the window element */
+.mbtn .art { animation: btnShine 4.2s ease-in-out infinite; animation-delay: var(--delay, 0s); }
+@keyframes btnShine {
+  0%, 66%, 94%, 100% { filter: none; }
+  76% { filter: brightness(1.3) drop-shadow(0 0 4px rgba(255, 220, 120, .8)); }
 }
 /* SPIN invites a tap: shimmers more often and gently breathes */
-#btnSpin::before { animation: btnShimmer 2.6s step-end infinite, breathe 2.6s ease-in-out infinite; }
-@keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.04); } }
+#btnSpin .frames { animation-duration: 2.6s; }
+#btnSpin .art { animation: btnShine 2.6s ease-in-out infinite, breathe 2.6s ease-in-out infinite; }
+@keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
 
 /* desktop hover */
 @media (hover: hover) {
-  .mbtn:not(:disabled):hover::before, #btnSpin:not(.on):hover::before { animation: none; background-position-x: 33.333%; }
+  .mbtn:not(:disabled):not(.on):hover .frames { animation: none; transform: translateX(-25%); }
 }
 
 /* pressed: jump to the glow frame and sink in */
-.mbtn.pressed::before {
+.mbtn.pressed .frames { animation: none !important; transform: translateX(-75%); }
+.mbtn.pressed .art {
   animation: none !important;
-  background-position-x: 100%;
   transform: scale(.92);
-  filter: drop-shadow(0 0 5px rgba(255, 60, 200, 1)) drop-shadow(0 0 12px rgba(255, 60, 200, .85)) brightness(1.15);
   transition: transform .05s;
+  filter: drop-shadow(0 0 5px rgba(255, 60, 200, 1)) drop-shadow(0 0 12px rgba(255, 60, 200, .85)) brightness(1.15);
 }
-/* tap release: a quick glow → sparkle → normal flash */
-.mbtn.tapped::before, #btnSpin.tapped::before { animation: btnTap .35s step-end 1; }
-@keyframes btnTap {
-  0%   { background-position-x: 100%; transform: scale(1.06); filter: drop-shadow(0 0 5px rgba(255, 60, 200, 1)) drop-shadow(0 0 14px rgba(255, 60, 200, .9)) brightness(1.2); }
-  40%  { background-position-x: 33.333%; transform: scale(1.03); filter: drop-shadow(0 0 4px rgba(255, 60, 200, .6)) brightness(1.15); }
-  75%  { background-position-x: 66.667%; transform: scale(1); filter: none; }
-  100% { background-position-x: 0%; }
+/* tap release: a quick glow -> sparkle -> shine -> normal flash */
+.mbtn.tapped .frames { animation: btnTapFrames .4s step-end 1 !important; }
+.mbtn.tapped .art { animation: btnTapArt .4s ease-out 1 !important; }
+@keyframes btnTapFrames {
+  0%   { transform: translateX(-75%); }
+  35%  { transform: translateX(-25%); }
+  70%  { transform: translateX(-50%); }
+  100% { transform: translateX(0); }
+}
+@keyframes btnTapArt {
+  0%   { transform: scale(1.08); filter: drop-shadow(0 0 5px rgba(255, 60, 200, 1)) drop-shadow(0 0 14px rgba(255, 60, 200, .9)) brightness(1.2); }
+  60%  { transform: scale(1.02); filter: drop-shadow(0 0 3px rgba(255, 60, 200, .6)) brightness(1.1); }
+  100% { transform: scale(1); filter: none; }
 }
 
-/* active (spinning / autoplay / free spins): pulse between glow and sparkle frames */
-.mbtn.on::before, #btnSpin.on::before { animation: btnActive .7s step-end infinite, breathe 1.4s ease-in-out infinite; }
-@keyframes btnActive {
-  0%   { background-position-x: 100%; filter: drop-shadow(0 0 5px rgba(255, 60, 200, 1)) drop-shadow(0 0 14px rgba(255, 60, 200, .9)) brightness(1.2); }
-  50%  { background-position-x: 33.333%; filter: drop-shadow(0 0 4px rgba(80, 220, 255, .9)) drop-shadow(0 0 10px rgba(255, 60, 200, .6)) brightness(1.1); }
+/* active (spinning / autoplay / free spins): pulse between the glow and sparkle frames */
+.mbtn.on .frames { animation: btnActiveFrames .7s step-end infinite !important; }
+.mbtn.on .art { animation: btnActiveArt .7s step-end infinite, breathe 1.4s ease-in-out infinite !important; }
+@keyframes btnActiveFrames {
+  0%   { transform: translateX(-75%); }
+  50%  { transform: translateX(-25%); }
+}
+@keyframes btnActiveArt {
+  0%   { filter: drop-shadow(0 0 5px rgba(255, 60, 200, 1)) drop-shadow(0 0 14px rgba(255, 60, 200, .9)) brightness(1.2); }
+  50%  { filter: drop-shadow(0 0 4px rgba(80, 220, 255, .9)) drop-shadow(0 0 10px rgba(255, 60, 200, .6)) brightness(1.1); }
 }
 
-.mbtn:disabled::before {
-  animation: none;
-  background-position-x: 66.667%;
-  filter: grayscale(.8) brightness(.55);
-}
+.mbtn:disabled .frames { animation: none !important; transform: translateX(-50%); }
+.mbtn:disabled .art { animation: none !important; filter: grayscale(.8) brightness(.55); }
 .mbtn:disabled { cursor: default; }
 
 #fsBar, #autoChip {
@@ -275,6 +301,13 @@ dialog::backdrop { background: rgba(5,0,10,.7); }
 .dlg-body h3:first-child { margin-top: 0; }
 .muted { color: #cdb3d9; font-size: 14px; line-height: 1.45; }
 .small { font-size: 12px; }
+.verbox {
+  display: flex; align-items: baseline; justify-content: center; gap: 10px;
+  margin: 0 0 12px; padding: 10px; border-radius: 12px;
+  border: 1px solid rgba(245,200,76,.5); background: rgba(0,0,0,.3);
+}
+.verbox span { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #cdb3d9; }
+.verbox b { font-size: 24px; color: var(--gold); text-shadow: 0 0 8px rgba(245,200,76,.45); font-variant-numeric: tabular-nums; }
 .wide {
   display: block; width: 100%; margin: 10px 0; padding: 12px;
   border-radius: 12px; border: 2px solid var(--gold);
@@ -314,7 +347,9 @@ dialog::backdrop { background: rgba(5,0,10,.7); }
 #toast[hidden] { display: none; }
 
 @media (prefers-reduced-motion: reduce) {
-  .cell.hit .gem { animation: sparkle 1.2s steps(5) infinite; }
-  .mbtn::before, #btnSpin::before { animation: none; }
-  .mbtn.on::before, #btnSpin.on::before { animation: btnActive 1.4s step-end infinite; }
+  .cell.hit .gem { animation: none; }
+  .cell.hit .gem-frames { animation: sparkle 1.2s steps(5) infinite; }
+  .mbtn .frames, .mbtn .art, #btnSpin .art { animation: none; }
+  .mbtn.on .frames { animation: btnActiveFrames 1.4s step-end infinite !important; }
+  .mbtn.on .art { animation: btnActiveArt 1.4s step-end infinite !important; }
 }

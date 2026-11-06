@@ -23,13 +23,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build site and stamp version
+      - name: Check version numbers are consistent
         run: |
-          BUILD="$(date -u +%Y%m%d%H%M%S)-${GITHUB_SHA::7}"
+          V=$(node -p "require('./version.json').version")
+          echo "Version $V"
+          grep -q "<meta name=\"app-version\" content=\"$V\">" index.html || { echo "index.html app-version meta is not $V - run: node tools/bump-version.js $V"; exit 1; }
+          grep -q "const VERSION = '$V';" sw.js || { echo "sw.js VERSION is not $V - run: node tools/bump-version.js $V"; exit 1; }
+          if grep -o '?v=[^"]*' index.html | grep -v "?v=$V\$"; then echo "index.html has ?v= queries that are not $V"; exit 1; fi
+
+      - name: Build site
+        run: |
           mkdir _site
           cp -r index.html manifest.webmanifest sw.js version.json css js assets icons _site/
-          sed -i "s/__BUILD__/${BUILD}/g" _site/index.html _site/sw.js _site/version.json
-          echo "Built version ${BUILD}"
 
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

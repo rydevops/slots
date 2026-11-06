@@ -8,16 +8,18 @@ A free-play, 5-reel × 3-row, 20-line gem slot machine built as an installable P
 3. Launch **Gem Royale** from the home screen (runs full screen, works offline).
 
 ## Deploying
-Pushing to `main` runs `.github/workflows/pages.yml`, which copies the site to `_site/`,
-replaces every `__BUILD__` placeholder with a unique build id (timestamp + commit) and publishes it.
+Pushing to `main` runs `.github/workflows/pages.yml`, which checks that the version numbers match and publishes the site.
 
 One-time setup: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
 
-## Auto-update
+## Versioning and auto-update
+The app version (shown in ⚙ Settings) lives in `version.json`. Bump it for every change with
+`node tools/bump-version.js <patch|minor|major>`.
+
 Every time the app opens or returns to the foreground, `js/update.js` fetches `version.json`
-with `cache: no-store`. If the deployed build id differs from the running one it clears the
+with `cache: no-store`. If the deployed version differs from the running one, it clears the
 service-worker caches and reloads into the new version (waiting until the reels stop if a spin
-or free spins are in progress). Settings (⚙ on the machine) also has a manual “Check for updates”.
+or free spins are in progress). Settings also has a manual "Check for updates".
 
 ## Game rules
 - Diamond = Wild (substitutes for all but Opal). Opal = Scatter: pays anywhere and awards free spins.
