@@ -1,5 +1,5 @@
-// Gem Royale service worker. __BUILD__ is replaced at deploy time.
-const VERSION = '__BUILD__';
+// Gem Royale service worker. VERSION is set by tools/bump-version.js; changing it renames the offline cache.
+const VERSION = '1.4.0';
 const CACHE = 'gem-royale-' + VERSION;
 const SHELL = [
   './',

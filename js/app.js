@@ -48,10 +48,18 @@
   const fmt = n => Math.round(n).toLocaleString('en-US');
 
   // ---------- sprites ----------
+  // .gem (window) > .gem-row (shifted to the symbol's row) > .gem-frames (stepped across frames)
   function gemEl(symbol, frame = 0) {
     const d = document.createElement('div');
     d.className = 'gem';
-    d.style.backgroundPosition = `${frame * 25}% ${(symbol * 100) / 14}%`;
+    const row = document.createElement('div');
+    row.className = 'gem-row';
+    row.style.transform = `translateY(${(-symbol * 100) / 15}%)`;
+    const frames = document.createElement('div');
+    frames.className = 'gem-frames';
+    if (frame) frames.style.transform = `translateX(${-frame * 20}%)`;
+    row.appendChild(frames);
+    d.appendChild(row);
     return d;
   }
   function cellEl(symbol) {
@@ -410,6 +418,7 @@
   }
 
   function init() {
+    $('hintVer').textContent = 'v' + (window.AppUpdate ? window.AppUpdate.version : '?');
     load();
     measure();
     for (let r = 0; r < E.REELS; r++) renderStatic(r, state.grid[r]);
@@ -417,9 +426,14 @@
 
     // sprite strip for each machine button, with a staggered idle shimmer
     document.querySelectorAll('.mbtn').forEach((b, i) => {
-      // absolute URL: a relative url() inside a custom property would resolve against css/
-      const src = new URL(`assets/btn/${b.dataset.sprite}.webp`, document.baseURI).href;
-      b.style.setProperty('--strip', `url("${src}")`);
+      // <span.art> is the visible window, <span.frames> holds the 4-frame strip
+      const art = document.createElement('span');
+      art.className = 'art';
+      const frames = document.createElement('span');
+      frames.className = 'frames';
+      frames.style.backgroundImage = `url("assets/btn/${b.dataset.sprite}.webp")`;
+      art.appendChild(frames);
+      b.appendChild(art);
       b.style.setProperty('--delay', `${(i * 0.55).toFixed(2)}s`);
       // press / release frame animation (works on iOS, where :active is unreliable)
       let downAt = 0;
@@ -433,7 +447,7 @@
       };
       b.addEventListener('pointerdown', () => { if (b.disabled) return; downAt = performance.now(); b.classList.add('pressed'); });
       ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => b.addEventListener(ev, release));
-      b.addEventListener('animationend', e => { if (e.animationName === 'btnTap') b.classList.remove('tapped'); });
+      b.addEventListener('animationend', e => { if (e.animationName === 'btnTapFrames') b.classList.remove('tapped'); });
     });
 
     // SPIN: tap to spin, press-and-hold for autoplay
@@ -451,7 +465,7 @@
     bind($('btnMinus'), () => changeBet(-1));
     bind($('btnPlus'), () => changeBet(1));
     bind($('btnInfo'), openHelp);
-    bind($('btnSettings'), () => { $('verLbl').textContent = window.AppUpdate ? window.AppUpdate.version : 'dev'; openDialog($('settingsDlg')); });
+    bind($('btnSettings'), () => { $('verLbl').textContent = 'v' + (window.AppUpdate ? window.AppUpdate.version : '?'); openDialog($('settingsDlg')); });
     bind($('btnSound'), () => toast('Sound is coming in a future update'));
     bind($('btnFull'), () => {
       const standalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
