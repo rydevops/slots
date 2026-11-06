@@ -2,6 +2,8 @@
 // The current machine is `M` (an entry of MACHINES, below) and its math engine is `E`.
 (function () {
   const $ = id => document.getElementById(id);
+  // sound (js/audio.js); a no-op stand-in keeps the game working if it is missing
+  const A = window.SlotAudio || { unlock() {}, scene() {}, sfx() {}, reels() {}, duck() {}, set() {}, settings: {} };
   let E = window.Engines['gem-royale'];
   let M = null;
 
@@ -126,9 +128,11 @@
       promises.push(anim.finished.catch(() => {}).then(() => {
         anim.cancel();
         renderStatic(r, finalGrid[r]);
+        A.sfx('reelStop', { reel: r });
       }));
     }
-    return Promise.all(promises);
+    A.reels(true);
+    return Promise.all(promises).then(v => { A.reels(false); return v; });
   }
 
   function slamStop() {
@@ -160,8 +164,10 @@
     clearInterval(countTimer);
     const start = performance.now();
     const el = $('win');
+    let ticks = 0;
     countTimer = setInterval(() => {
       const t = Math.min(1, (performance.now() - start) / ms);
+      if (t < 1 && ticks++ % 3 === 0) A.sfx('coin');
       el.textContent = fmt(target * (1 - Math.pow(1 - t, 3)));
       if (t >= 1) clearInterval(countTimer);
     }, 30);
@@ -224,6 +230,8 @@
     clearPresentation();
     if (!result.wins.length) return;
     if (result.total >= 5 * totalBet()) celebrate();
+    const x = result.total / totalBet();
+    if (!result.jackpot && x < 15) A.sfx(x >= 3 ? 'winMedium' : 'winSmall');   // bigger wins get a fanfare below
     reelWindow.classList.add('dim');
     // 1) everything at once
     result.wins.forEach(w => { if (w.line >= 0) drawLine(w.line); highlight(w.cells); });
@@ -253,6 +261,7 @@
     bw.querySelector('.bw-title').textContent = x >= 100 ? 'EPIC WIN!' : x >= 40 ? 'MEGA WIN!' : 'BIG WIN!';
     const amt = bw.querySelector('.bw-amount');
     bw.hidden = false;
+    A.sfx('bigWin');
     return new Promise(resolve => {
       const start = performance.now(), ms = 1800;
       const tick = () => {
@@ -282,6 +291,7 @@
     tap.classList.remove('show');
     amt.textContent = '0';
     ov.hidden = false;
+    A.sfx('jackpot');
     celebrate(9000);
     return new Promise(resolve => {
       const start = performance.now(), ms = 3000;
@@ -312,6 +322,7 @@
     const isFree = state.freeSpins > 0;
     if (!isFree && state.credits < totalBet()) {
       state.auto = false; updateHud();
+      A.sfx('noCredits');
       if (state.credits < LINE_BETS[0] * E.LINES.length) {
         toast('Out of credits — refilled to 2,000 for free!', 3000);
         state.credits = START_CREDITS; save(); updateHud();
@@ -323,6 +334,7 @@
 
     clearPresentation();
     clearInterval(countTimer);
+    A.sfx('spin');
     state.spinning = true;
     state.lastWin = 0;
     if (isFree) state.freeSpins--;
@@ -364,6 +376,7 @@
       state.freeSpinTotal += result.freeSpins;
       save(); updateHud();
       toast(isFree ? `+${result.freeSpins} free spins!` : `${result.freeSpins} FREE SPINS!`, 2500);
+      A.sfx('freeSpins');
       await sleep(2200);
     }
 
@@ -391,6 +404,7 @@
     const n = state.betIdx + d;
     if (n < 0 || n >= LINE_BETS.length) return;
     state.betIdx = n;
+    A.sfx('bet', { level: n });
     save(); updateHud();
   }
 
@@ -398,6 +412,7 @@
     state.auto = !state.auto;
     updateHud();
     toast(state.auto ? 'Autoplay on — tap SPIN to stop' : 'Autoplay off');
+    A.sfx(state.auto ? 'autoOn' : 'autoOff');
     if (state.auto && !state.spinning) spin();
   }
 
@@ -511,7 +526,11 @@
           b.classList.remove('tapped'); void b.offsetWidth; b.classList.add('tapped');
         }, wait);
       };
-      b.addEventListener('pointerdown', () => { if (b.disabled) return; downAt = performance.now(); b.classList.add('pressed'); });
+      b.addEventListener('pointerdown', () => {
+        if (b.disabled) return;
+        downAt = performance.now(); b.classList.add('pressed');
+        if (b.id !== 'btnSpin') A.sfx('press');     // SPIN has its own sound
+      });
       ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => b.addEventListener(ev, release));
       b.addEventListener('animationend', e => { if (e.animationName === 'btnTapFrames') b.classList.remove('tapped'); });
     });
@@ -532,7 +551,12 @@
     bind($('btnPlus'), () => changeBet(1));
     bind($('btnInfo'), openHelp);
     bind($('btnSettings'), () => { $('verLbl').textContent = 'v' + (window.AppUpdate ? window.AppUpdate.version : '?'); openDialog($('settingsDlg')); });
-    bind($('btnSound'), () => toast('Sound is coming in a future update'));
+    bind($('btnSound'), () => {
+      const on = !(A.settings.music || A.settings.sfx);   // any sound on -> mute all; all off -> both on
+      A.unlock(); A.set('music', on); A.set('sfx', on);
+      syncSoundUi();
+      toast(on ? 'Sound on' : 'Sound off');
+    });
     bind($('btnFull'), () => {
       const standalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
       if (standalone) toast('Already running full screen');
@@ -693,6 +717,7 @@
     const m = MACHINES.find(x => x.id === id);
     if (!m || !m.ready || opening) return;
     opening = true;
+    A.unlock(); A.sfx('select');
     const badge = document.querySelector(`.mn-card[data-machine="${id}"] .badge`);
     if (badge) badge.textContent = 'LOADING…';
     await machineReady(m);
@@ -700,15 +725,41 @@
     if (!wired) { wired = true; initOnce(); }
     $('app').hidden = false;
     $('menuScreen').hidden = true;
+    A.scene(m.id);
     enterMachine(m);
     opening = false;
   }
+  // ---------- sound controls ----------
+  function syncSoundUi() {
+    const s = A.settings, any = s.music || s.sfx;
+    const sb = $('btnSound'); if (sb) sb.classList.toggle('muted', !any);
+    $('menuSound').textContent = any ? '🔊' : '🔇';
+    $('menuSound').classList.toggle('off', !any);
+    $('setMusic').checked = !!s.music; $('setSfx').checked = !!s.sfx;
+    $('volMusic').value = Math.round((s.musicVol || 0) * 100); $('volSfx').value = Math.round((s.sfxVol || 0) * 100);
+    $('startSound').textContent = any ? '🔊 Sound on · change it in Settings' : '🔇 Sound off · turn it on in Settings';
+  }
+  $('setMusic').addEventListener('change', e => { A.unlock(); A.set('music', e.target.checked); syncSoundUi(); });
+  $('setSfx').addEventListener('change', e => { A.unlock(); A.set('sfx', e.target.checked); syncSoundUi(); A.sfx('tap'); });
+  $('volMusic').addEventListener('input', e => { A.set('musicVol', e.target.value / 100); if (!A.settings.music) { A.set('music', true); syncSoundUi(); } });
+  $('volSfx').addEventListener('input', e => { A.set('sfxVol', e.target.value / 100); if (!A.settings.sfx) { A.set('sfx', true); syncSoundUi(); } });
+  $('volSfx').addEventListener('change', () => A.sfx('winSmall'));
+  $('menuSound').addEventListener('click', e => {
+    e.stopPropagation();
+    const on = !(A.settings.music || A.settings.sfx);
+    A.unlock(); A.set('music', on); A.set('sfx', on); syncSoundUi();
+    if (on) A.sfx('tap');
+  });
+  syncSoundUi();
+
   // Leave the game for the menu (not mid-spin or during free spins)
   function backToMenu() {
     if (state.spinning || state.freeSpins > 0) { toast(state.freeSpins > 0 ? 'Finish your free spins first' : 'Wait for the reels to stop'); return; }
     if (state.auto) { state.auto = false; updateHud(); }
     document.querySelectorAll('dialog[open]').forEach(closeDialog);
     clearPresentation();
+    A.sfx('back');
+    A.scene('lobby');
     showMenu();
   }
   $('btnMenu').addEventListener('click', backToMenu);
@@ -718,6 +769,8 @@
     if (started) return;
     started = true;
     const screen = $('startScreen');
+    // the first tap is what lets iPhones play sound: start the lobby music here
+    A.unlock(); A.scene('lobby'); A.sfx('start');
     showMenu();
     screen.classList.add('leaving');
     setTimeout(() => { screen.hidden = true; }, 500);

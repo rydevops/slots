@@ -11,6 +11,28 @@ All notable changes to Gem Royale are listed here. The format follows
 The version shown in the app's Settings matches the newest entry. Versions 1.0.0–1.3.0 were
 released before numbering was added to the app and are recorded here retroactively.
 
+## [1.10.0] - 2026-11-06
+
+### Added
+- **Music and sound effects**, all generated live in the browser (Web Audio API), with no audio files.
+  - **Music:** a lounge-jazz theme for the title screen and menu, a bright casino-swing theme with glassy bells for Gem Royale, and a dreamy harp-and-celesta theme for Unicorn Royale. Themes crossfade when you change screen.
+  - **Sound effects:**
+    - start chime, menu select/back, and button presses;
+    - bet up/down (pitch follows the bet) and autoplay on/off;
+    - spin whoosh, reel ticking and a thunk as each reel stops;
+    - win jingles in each machine's own instrument (bells for Gem Royale, harp for Unicorn Royale) and coin ticks while wins count up;
+    - BIG WIN fanfare, free-spins glissando, JACKPOT fanfare with a coin shower, and an out-of-credits buzz.
+  - **Mixing:** music ducks under fanfares and pauses while the app is in the background.
+- **Sound controls:**
+  - the machine's 🔊 button mutes or unmutes everything (a red slash shows when muted);
+  - a 🔊/🔇 button on the menu;
+  - Music and Sound-effects switches with volume sliders in Settings.
+
+  Choices are saved in `slots-audio-v1`.
+
+### Changed
+- iPhones only allow sound after a tap, so the lobby music starts on TAP TO START. Sound follows the iPhone's silent switch and mixes with other apps' audio.
+
 ## [1.9.0] - 2026-11-06
 
 ### Changed
