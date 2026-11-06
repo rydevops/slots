@@ -112,53 +112,50 @@ button { font: inherit; color: inherit; touch-action: manipulation; cursor: poin
   display: flex; flex-direction: column; align-items: center; gap: 6px;
   overflow-y: auto; -webkit-overflow-scrolling: touch;
 }
-.mn-title { width: min(78vw, 520px, 60dvh); height: auto; display: block; filter: drop-shadow(0 6px 16px rgba(0,0,0,.6)); }
+.mn-title { margin-top: auto; width: min(78vw, 520px, 60dvh); height: auto; display: block; filter: drop-shadow(0 6px 16px rgba(0,0,0,.6)); }
 .mn-head {
   margin: 0 0 8px; font-size: clamp(16px, 4.6vw, 24px); letter-spacing: .14em; text-transform: uppercase;
   color: var(--gold-hi); text-shadow: 0 0 10px rgba(224, 36, 154, .8), 0 2px 0 #3a1050;
 }
 .mn-list {
-  width: min(100%, 680px);
-  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(8px, 3vw, 14px);
+  width: min(100%, 640px);
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(10px, 3.5vw, 22px);
 }
+/* Each card is the machine's own 3:4 artwork, rounded to match its gold border */
 .mn-card {
-  position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px;
-  padding: 12px 10px 14px; border-radius: 18px;
-  border: 2px solid var(--gold);
-  background: linear-gradient(160deg, rgba(74, 20, 102, .92), rgba(26, 6, 38, .95));
-  box-shadow: 0 8px 22px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.2), 0 0 18px rgba(224, 36, 154, .35);
-  color: var(--text); text-align: center;
-  transition: transform .12s ease-out, box-shadow .12s;
+  --r: 12.5% / 9.4%;
+  position: relative; display: block; width: 100%; aspect-ratio: 1086 / 1448;
+  padding: 0; border: 0; background: none; border-radius: var(--r); overflow: hidden;
+  box-shadow: 0 10px 24px rgba(0,0,0,.6), 0 0 22px rgba(224, 36, 154, .45);
+  transition: transform .14s ease-out, box-shadow .14s;
+  -webkit-mask-image: -webkit-radial-gradient(white, black);   /* keeps the rounded clip on iOS while transformed */
 }
+.mn-card img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .mn-card:not(:disabled):active { transform: scale(.96); }
-@media (hover: hover) { .mn-card:not(:disabled):hover { transform: translateY(-3px); box-shadow: 0 12px 26px rgba(0,0,0,.6), 0 0 26px rgba(224, 36, 154, .6); } }
-.mn-card img { width: 100%; aspect-ratio: 1 / .92; object-fit: contain; display: block; }
-.mn-card .nm { font-size: clamp(15px, 4.2vw, 19px); font-weight: bold; color: var(--gold); }
-.mn-card .tg { font-size: 12px; color: #d9b8ea; min-height: 2.4em; }
+@media (hover: hover) { .mn-card:not(:disabled):hover { transform: translateY(-4px); box-shadow: 0 14px 30px rgba(0,0,0,.65), 0 0 32px rgba(224, 36, 154, .75); } }
+/* a soft band of light sweeps across the card every few seconds */
+.mn-card .shine {
+  position: absolute; top: -10%; bottom: -10%; left: -60%; width: 45%; pointer-events: none;
+  background: linear-gradient(100deg, transparent, rgba(255, 245, 220, .35) 50%, transparent);
+  transform: translateX(0) skewX(-12deg); animation: mnShine 5s ease-in-out infinite;
+}
+.mn-card + .mn-card .shine { animation-delay: 2.5s; }
+@keyframes mnShine { 0%, 62% { transform: translateX(0) skewX(-12deg); } 100% { transform: translateX(420%) skewX(-12deg); } }
+/* over the artwork's PLAY pill */
 .mn-card .badge {
-  margin-top: 2px; padding: 6px 18px; border-radius: 999px; font-weight: 900; letter-spacing: .1em; font-size: 14px;
-  color: #fff; background: radial-gradient(circle at 50% 35%, #ff7ad0, #e0249a 50%, #8a0a5a);
-  border: 2px solid var(--gold); box-shadow: 0 0 12px rgba(224, 36, 154, .7);
-  animation: mnPulse 1.4s ease-in-out infinite;
+  position: absolute; left: 14%; width: 72%; top: 78.5%; height: 14%;
+  display: none; align-items: center; justify-content: center; border-radius: 999px;
+  background: rgba(60, 10, 80, .9); color: var(--gold-hi);
+  font-weight: 900; letter-spacing: .1em; font-size: clamp(11px, 3.4vw, 20px);
 }
-@keyframes mnPulse { 50% { transform: scale(1.06); box-shadow: 0 0 20px rgba(224, 36, 154, .95); } }
-.mn-card:disabled { cursor: default; border-color: rgba(245, 200, 76, .45); }
-.mn-card:disabled img { filter: saturate(.45) brightness(.65); }
-.mn-card:disabled .badge { animation: none; background: rgba(0,0,0,.55); color: #d9b8ea; border-color: rgba(245, 200, 76, .4); box-shadow: none; font-size: 12px; }
-.mn-card .ribbon {
-  position: absolute; top: 14px; right: -6px; padding: 3px 10px; border-radius: 6px 0 0 6px;
-  font-size: 11px; font-weight: 900; letter-spacing: .08em; color: var(--ink);
-  background: linear-gradient(var(--gold-hi), var(--gold)); box-shadow: 0 2px 6px rgba(0,0,0,.5);
-}
-#menuVer { position: static; margin-top: auto; padding-top: 12px; }
+.mn-card.loading .badge, .mn-card:disabled .badge { display: flex; }
+.mn-card.loading .badge { animation: stTap 1s ease-in-out infinite; }
+.mn-card:disabled { cursor: default; }
+.mn-card:disabled img { filter: saturate(.4) brightness(.6); }
 @media (orientation: landscape) and (max-height: 600px) {
-  .mn-inner { gap: 2px; padding-top: calc(var(--sa-top) + 6px); }
   .mn-title { width: min(30vw, 240px); }
   .mn-head { margin-bottom: 4px; font-size: 15px; }
-  .mn-list { width: auto; grid-template-columns: repeat(2, 170px); justify-content: center; }
-  .mn-card { padding: 8px 8px 10px; gap: 3px; }
-  .mn-card img { height: 30dvh; aspect-ratio: auto; }
-  .mn-card .tg { display: none; }
+  .mn-list { width: auto; grid-template-columns: repeat(2, calc((100dvh - var(--sa-top) - var(--sa-bottom) - 150px) * .75)); justify-content: center; }
 }
 
 /* back-to-menu button in the game */
@@ -506,7 +503,7 @@ dialog::backdrop { background: rgba(5,0,10,.7); }
 
 @media (prefers-reduced-motion: reduce) {
   .st-title { animation: none; }
-  .mn-card .badge { animation: none; }
+  .mn-card .shine, .mn-card.loading .badge { animation: none; }
   .sb1, .sb2, .sb3, .stt1, .stt2, .stt3 { animation-duration: 12s; }
   .st-tap { animation-duration: 2.4s; }
   #machineArt, #machine.spinning #machineArt, #machine.celebrate #machineArt { --mfDur: 12s; }

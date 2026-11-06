@@ -55,7 +55,7 @@ Gem Royale is a free-play gem slot machine. It is built as a PWA (Progressive We
 | `assets/unicorn/bg.jpg` | Blurred page background for Unicorn Royale. |
 | `assets/start/bg-0..3.webp` | Start-screen background frames (832×466 each), cut from the owner's 2×2 casino sheet (tile origins (0,0), (836,0), (0,471), (836,471)). |
 | `assets/start/title-0..3.webp` | "Slots Gallery" title frames (1149×370 each), cut from the owner's 4-row title sheet (frame tops at y = 20, 363, 704, 1047). Each frame is clipped to its own band, and glow is kept only near the artwork, so stray glow noise on the sheet is dropped. |
-| `assets/menu/<machine-id>.webp` | Menu card thumbnails (frame 0 of each machine, with its screen hole filled dark). |
+| `assets/menu/<machine-id>.webp` | Menu cards: the owner's card artwork, 600×800. |
 | `assets/bg.jpg` | Blurred casino background for the page. |
 | `icons/` | App icons (180 / 192 / 512). |
 
@@ -71,7 +71,7 @@ Gem Royale is a free-play gem slot machine. It is built as a PWA (Progressive We
 - `MACHINES` in `app.js` lists every machine: `id`, `name`, `tagline`, `thumb`, `ready`, `symbolWord` ('gem'/'symbol', used in the paytable), `art` (aspect, 4 frames, symbol sheet, button strips, page bg, optional 6 jackpot frames) and `layout` ([left, top, width, height] percentages for `reels`, `bet`, `bal`, `win`, optional `jackpot` plate, and every `btn*`). `ready: false` shows a dimmed "COMING SOON" card.
 - `openMachine(id)` waits for that machine's art, then `enterMachine()` → `applyMachine()` points the one shared game screen at it (`--ar`, `--symSheet`, frame and button images, element positions, `#machine.m-<id>` class) and loads its saved state.
 - **Adding a machine:** add its math to `DEFS` in `engine.js`, tune it with `MACHINE=<id> node tools/simulate.js`, cut its art into the same formats, measure its layout, add a `MACHINES` entry, a menu thumbnail and `sw.js` cache entries.
-- The menu is a **placeholder design**: it reuses the start-screen background and title. The owner will supply menu artwork later.
+- Menu cards are the owner's 3:4 card artwork (`assets/menu/<id>.webp`, 600×800, PLAY pill built in). The whole card is the button, rounded `12.5% / 9.4%` to match its gold border, with a light sweep (`.shine`). `.badge` sits over the PLAY pill and only shows for LOADING… or COMING SOON. The menu still reuses the start-screen background and title.
 
 ## Layout of the machine
 
