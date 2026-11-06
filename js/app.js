@@ -508,14 +508,47 @@
 
   window.GemRoyale = { isBusy: () => state.spinning || state.freeSpins > 0, toast };
 
-  // wait for artwork before showing the machine
+  // ---------- startup ----------
+  // 1) Show the start screen as soon as its own artwork is loaded.
+  // 2) Keep loading the game artwork behind it.
+  // 3) On tap: start the game (waiting for the game artwork if it's still loading).
   const ver = window.AppUpdate ? window.AppUpdate.version : '';
-  const imgs = [0, 1, 2, 3].map(i => `assets/machine-${i}.webp?v=${ver}`).concat('assets/gems.webp');
-  ['settings', 'info', 'sound', 'spin', 'minus', 'plus', 'full'].forEach(n => imgs.push(`assets/btn/${n}.webp`));
-  Promise.all(imgs.map(src => new Promise(res => { const i = new Image(); i.onload = i.onerror = res; i.src = src; })))
-    .then(() => {
-      $('loading').hidden = true;
-      $('app').hidden = false;
-      init();
+  const preload = srcs => Promise.all(srcs.map(src => new Promise(res => {
+    const i = new Image(); i.onload = i.onerror = res; i.src = src;
+  })));
+  const startImgs = [0, 1, 2, 3].flatMap(i => [`assets/start/bg-${i}.webp?v=${ver}`, `assets/start/title-${i}.webp?v=${ver}`]);
+  const gameImgs = [0, 1, 2, 3].map(i => `assets/machine-${i}.webp?v=${ver}`).concat('assets/gems.webp');
+  ['settings', 'info', 'sound', 'spin', 'minus', 'plus', 'full'].forEach(n => gameImgs.push(`assets/btn/${n}.webp`));
+
+  const gameReady = preload(gameImgs);
+  let started = false;
+
+  async function startGame() {
+    if (started) return;
+    started = true;
+    const screen = $('startScreen');
+    const tap = $('startTap');
+    tap.textContent = 'Loading…';
+    tap.classList.add('wait');
+    await gameReady;
+    $('app').hidden = false;
+    init();
+    screen.classList.add('leaving');
+    setTimeout(() => { screen.hidden = true; }, 500);
+  }
+
+  preload(startImgs).then(() => {
+    const screen = $('startScreen');
+    $('startVer').textContent = 'v' + (ver || '?');
+    $('loading').hidden = true;
+    screen.hidden = false;
+    screen.addEventListener('click', startGame);
+    document.addEventListener('keydown', function onKey(e) {
+      if (e.code === 'Space' || e.code === 'Enter') {
+        e.preventDefault();
+        document.removeEventListener('keydown', onKey);
+        startGame();
+      }
     });
+  });
 })();

@@ -13,8 +13,10 @@ Pushing to `main` runs `.github/workflows/pages.yml`, which checks that the vers
 One-time setup: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
 
 ## Versioning and auto-update
-The app version (shown in ⚙ Settings) lives in `version.json`. Bump it for every change with
-`node tools/bump-version.js <patch|minor|major>`.
+The app follows [Semantic Versioning 2.0.0](https://semver.org) (`MAJOR.MINOR.PATCH`). The version is
+shown in ⚙ Settings and on the start screen, lives in `version.json`, and each release is described in
+[`CHANGELOG.md`](CHANGELOG.md). Bump it for every change with `node tools/bump-version.js <patch|minor|major>`
+(then fill in the new changelog entry); `node tools/bump-version.js --check` validates everything.
 
 Every time the app opens or returns to the foreground, `js/update.js` fetches `version.json`
 with `cache: no-store`. If the deployed version differs from the running one, it clears the
