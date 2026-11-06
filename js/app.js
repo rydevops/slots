@@ -141,6 +141,7 @@
     $('btnPlus').disabled = lock || state.betIdx === LINE_BETS.length - 1;
     $('btnSpin').classList.toggle('on', state.spinning || state.auto || state.freeSpins > 0);
     $('autoChip').hidden = !state.auto;
+    $('machine').classList.toggle('spinning', state.spinning || state.auto || state.freeSpins > 0);
   }
 
   let countTimer = null;
@@ -198,9 +199,19 @@
     return `Line ${w.line + 1} · ${w.count} × ${name} · ${fmt(w.amount)}`;
   }
 
+  // Machine lights race for a few seconds on bigger wins (>= 5x the total bet)
+  let celebrateTimer = null;
+  function celebrate(ms = 3000) {
+    const m = $('machine');
+    m.classList.add('celebrate');
+    clearTimeout(celebrateTimer);
+    celebrateTimer = setTimeout(() => m.classList.remove('celebrate'), ms);
+  }
+
   function presentWins(result) {
     clearPresentation();
     if (!result.wins.length) return;
+    if (result.total >= 5 * totalBet()) celebrate();
     reelWindow.classList.add('dim');
     // 1) everything at once
     result.wins.forEach(w => { if (w.line >= 0) drawLine(w.line); highlight(w.cells); });
@@ -498,7 +509,8 @@
   window.GemRoyale = { isBusy: () => state.spinning || state.freeSpins > 0, toast };
 
   // wait for artwork before showing the machine
-  const imgs = ['assets/machine.webp?v=' + (window.AppUpdate ? window.AppUpdate.version : ''), 'assets/gems.webp'];
+  const ver = window.AppUpdate ? window.AppUpdate.version : '';
+  const imgs = [0, 1, 2, 3].map(i => `assets/machine-${i}.webp?v=${ver}`).concat('assets/gems.webp');
   ['settings', 'info', 'sound', 'spin', 'minus', 'plus', 'full'].forEach(n => imgs.push(`assets/btn/${n}.webp`));
   Promise.all(imgs.map(src => new Promise(res => { const i = new Image(); i.onload = i.onerror = res; i.src = src; })))
     .then(() => {
