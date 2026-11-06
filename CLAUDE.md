@@ -1,6 +1,6 @@
-# Gem Royale — CLAUDE.md
+# Gambling Arena — CLAUDE.md
 
-Gem Royale is a free-play gem slot machine. It is built as a PWA (Progressive Web App) that the owner installs on an iPhone from GitHub Pages (Safari → Share → Add to Home Screen). Credits have no cash value.
+Gambling Arena (formerly "Slots Gallery") is a free-play slot machine collection: Gem Royale and Unicorn Royale. It is built as a PWA (Progressive Web App) that the owner installs on an iPhone from GitHub Pages (Safari → Share → Add to Home Screen). Credits have no cash value.
 
 ## Rules
 
@@ -54,7 +54,7 @@ Gem Royale is a free-play gem slot machine. It is built as a PWA (Progressive We
 | `assets/unicorn/jackpot-0..5.webp` | The 6-frame JACKPOT banner (768×341 each). The amount is drawn over its purple plate (left 35.8%, top 76.8%, width 28.4%, height 11.4%). |
 | `assets/unicorn/bg.jpg` | Blurred page background for Unicorn Royale. |
 | `assets/start/bg-0..3.webp` | Start-screen background frames (832×466 each), cut from the owner's 2×2 casino sheet (tile origins (0,0), (836,0), (0,471), (836,471)). |
-| `assets/start/title-0..3.webp` | "Slots Gallery" title frames (1149×370 each), cut from the owner's 4-row title sheet (frame tops at y = 20, 363, 704, 1047). Each frame is clipped to its own band, and glow is kept only near the artwork, so stray glow noise on the sheet is dropped. |
+| `assets/start/title-0..3.webp` | "Gambling Arena" title frames (1172×300 each; `.st-title` aspect-ratio 1172/300), cut from the owner's 4-row title sheet (frame tops at y = 8, 331, 653, 975, x offset 22). Each frame is clipped to its own band, and glow is kept only near the artwork, so stray glow noise on the sheet is dropped. |
 | `assets/menu/<machine-id>.webp` | Menu cards: the owner's card artwork, 600×800. |
 | `assets/bg.jpg` | Blurred casino background for the page. |
 | `icons/` | App icons (180 / 192 / 512). |

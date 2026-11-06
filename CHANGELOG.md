@@ -11,6 +11,15 @@ All notable changes to Gem Royale are listed here. The format follows
 The version shown in the app's Settings matches the newest entry. Versions 1.0.0–1.3.0 were
 released before numbering was added to the app and are recorded here retroactively.
 
+## [1.12.0] - 2026-11-06
+
+### Changed
+- The game is now titled **Gambling Arena**. The start screen and machine menu use the new 4-frame animated title, which crossfades through its frames like the old one.
+- App name updated to Gambling Arena: browser tab, home-screen name for new installs, accessibility labels and Settings text.
+
+### Fixed
+- In landscape, the "Sound on" line on the start screen overlapped the version number.
+
 ## [1.11.0] - 2026-11-06
 
 ### Changed

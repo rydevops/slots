@@ -1,4 +1,4 @@
-// Slots Gallery – UI / game loop shared by every machine.
+// Gambling Arena – UI / game loop shared by every machine.
 // The current machine is `M` (an entry of MACHINES, below) and its math engine is `E`.
 (function () {
   const $ = id => document.getElementById(id);
@@ -668,7 +668,7 @@
     });
     $('jpBanner').querySelectorAll('img').forEach(i => i.remove());
     if (m.art.jackpot) preload(m.art.jackpot.map(assetUrl));
-    document.title = `${m.name} · Slots Gallery`;
+    document.title = `${m.name} · Gambling Arena`;
   }
 
   function enterMachine(m) {

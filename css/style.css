@@ -72,7 +72,7 @@ button { font: inherit; color: inherit; touch-action: manipulation; cursor: poin
 .st-title {
   position: relative;
   width: min(94vw, 760px, 150dvh);
-  aspect-ratio: 1149 / 370;
+  aspect-ratio: 1172 / 300;
   margin-top: -12dvh;
   animation: stTitleIn .9s cubic-bezier(.2, 1.4, .4, 1) both, stFloat 3.2s ease-in-out .9s infinite alternate;
 }
@@ -563,7 +563,10 @@ dialog::backdrop { background: rgba(5,0,10,.7); }
   position: absolute; left: 0; right: 0; bottom: calc(var(--sa-bottom) + 12dvh);
   margin: 0; text-align: center; font-size: 13px; color: rgba(240, 220, 250, .75); pointer-events: none;
 }
-@media (orientation: landscape) and (max-height: 600px) { .st-sound { bottom: calc(var(--sa-bottom) + 6dvh); } }
+@media (orientation: landscape) and (max-height: 600px) {
+  .st-sound { bottom: calc(var(--sa-bottom) + 30px); }
+  #startScreen .st-tap { bottom: calc(var(--sa-bottom) + 56px); }
+}
 .mn-sound {
   position: absolute; top: calc(var(--sa-top) + 10px); right: calc(var(--sa-right) + 12px);
   width: 42px; height: 42px; border-radius: 50%; font-size: 20px; line-height: 1;

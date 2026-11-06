@@ -1,4 +1,4 @@
-// Slots Gallery – game math for every machine (pure, no DOM). Usable in browser and Node.
+// Gambling Arena – game math for every machine (pure, no DOM). Usable in browser and Node.
 //
 //   Engines['gem-royale'], Engines['unicorn-royale']   – one engine per machine
 //   Engine                                             – Gem Royale (kept for older tools)
