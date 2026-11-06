@@ -6,7 +6,9 @@
 // Each machine definition lists its symbols in sprite-sheet row order. Special symbols:
 //   wild    – substitutes on paylines for every symbol except scatter/jackpot
 //   scatter – pays anywhere (× total bet) and awards free spins
-//   jackpot – pays anywhere (× total bet); `jackpotAt` or more of them wins the JACKPOT
+//   jackpot – pays anywhere (× total bet); `jackpotAt` or more of them wins the PROGRESSIVE JACKPOT:
+//             a pot that starts at `jackpotSeed` and grows by `jackpotRate` × every paid bet.
+//             The app keeps the pot and passes it to evaluate() as { jackpotPool }.
 (function (root) {
   const LINES = [
     [1,1,1,1,1],[0,0,0,0,0],[2,2,2,2,2],[0,1,2,1,0],[2,1,0,1,2],
@@ -56,8 +58,9 @@
         { id: 14, name: 'Jackpot',        tier: 'jackpot', pays: { 3: 2, 4: 10 }, w: 3, jackpot: true },
       ],
       FREE_SPINS: { 3: 8, 4: 12, 5: 20 },
-      jackpotAt: 5,          // this many JACKPOT symbols anywhere wins the jackpot
-      jackpotMult: 1000,     // jackpot = jackpotMult × total bet
+      jackpotAt: 5,          // this many JACKPOT symbols anywhere wins the progressive jackpot
+      jackpotSeed: 10000,    // the pot starts (and restarts after a win) at this many credits
+      jackpotRate: 0.02,     // each paid spin adds this share of its total bet to the pot
     },
   };
 
@@ -100,7 +103,8 @@
       return out;
     }
 
-    function evaluate(grid, lineBet) {
+    // opts.jackpotPool: current progressive pot (defaults to the seed)
+    function evaluate(grid, lineBet, opts = {}) {
       const wins = [];
       const totalBet = lineBet * LINES.length;
       LINES.forEach((line, li) => {
@@ -147,7 +151,8 @@
         const n = jp.length;
         if (n >= def.jackpotAt) {
           jackpot = true;
-          wins.push({ line: -1, symbol: JACKPOT, count: n, amount: def.jackpotMult * totalBet, cells: jp, jackpot: true });
+          const pot = Math.floor(opts.jackpotPool != null ? opts.jackpotPool : def.jackpotSeed);
+          wins.push({ line: -1, symbol: JACKPOT, count: n, amount: pot, cells: jp, jackpot: true });
         } else if (SYMBOLS[JACKPOT].pays[n]) {
           wins.push({ line: -1, symbol: JACKPOT, count: n, amount: SYMBOLS[JACKPOT].pays[n] * totalBet, cells: jp });
         }
@@ -159,7 +164,7 @@
 
     return {
       id, SYMBOLS, WILD, SCATTER, JACKPOT, FREE_SPINS, LINES, REELS, ROWS,
-      jackpotAt: def.jackpotAt || 0, jackpotMult: def.jackpotMult || 0,
+      jackpotAt: def.jackpotAt || 0, jackpotSeed: def.jackpotSeed || 0, jackpotRate: def.jackpotRate || 0,
       spinGrid, evaluate, randomSymbol,
     };
   }

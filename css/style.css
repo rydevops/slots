@@ -532,6 +532,8 @@ dialog::backdrop { background: rgba(5,0,10,.7); }
   text-shadow: 0 0 6px rgba(245, 200, 76, .6);
 }
 #dispJackpot[hidden] { display: none; }
+#dispJackpot.grow span { animation: jpGrow .5s ease-out; }
+@keyframes jpGrow { 40% { color: #fff; text-shadow: 0 0 10px rgba(255, 230, 140, 1); } }
 #dispJackpot small { font-size: .8em; color: #ffd6f5; letter-spacing: .12em; }
 
 /* ---------- JACKPOT win overlay (6-frame banner) ---------- */

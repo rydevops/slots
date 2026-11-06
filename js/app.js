@@ -20,6 +20,7 @@
     freeSpins: 0,
     freeSpinTotal: 0,
     freeSpinWin: 0,
+    jackpotPool: 0,          // progressive jackpot pot (machines with a JACKPOT symbol)
     auto: false,
   };
 
@@ -39,10 +40,12 @@
     state.freeSpins = Number.isInteger(s.freeSpins) ? s.freeSpins : 0;
     state.freeSpinTotal = Number.isInteger(s.freeSpinTotal) ? s.freeSpinTotal : 0;
     state.freeSpinWin = Number.isFinite(s.freeSpinWin) ? s.freeSpinWin : 0;
+    state.jackpotPool = Number.isFinite(s.jackpotPool) && s.jackpotPool >= E.jackpotSeed ? s.jackpotPool : E.jackpotSeed;
   }
   function save() {
     if (!M) return;
     const own = { betIdx: state.betIdx, freeSpins: state.freeSpins, freeSpinTotal: state.freeSpinTotal, freeSpinWin: state.freeSpinWin };
+    if (E.JACKPOT >= 0) own.jackpotPool = Math.round(state.jackpotPool * 100) / 100;
     if (M.id === 'gem-royale') writeKey(SHARED_KEY, Object.assign({ credits: state.credits }, own));
     else {
       writeKey(keyFor(M.id), own);
@@ -140,7 +143,7 @@
     $('credits').textContent = fmt(state.credits);
     $('bet').textContent = state.freeSpins > 0 ? 'FREE' : fmt(totalBet());
     $('win').textContent = fmt(state.lastWin);
-    if (E.JACKPOT >= 0) $('jackpotAmt').textContent = fmt(E.jackpotMult * totalBet());
+    if (E.JACKPOT >= 0) $('jackpotAmt').textContent = fmt(Math.floor(state.jackpotPool));
     const fs = state.freeSpinTotal > 0;
     $('fsBar').hidden = !fs;
     if (fs) $('fsCount').textContent = `${state.freeSpinTotal - state.freeSpins} / ${state.freeSpinTotal}`;
@@ -323,12 +326,20 @@
     state.spinning = true;
     state.lastWin = 0;
     if (isFree) state.freeSpins--;
-    else state.credits -= totalBet();
+    else {
+      state.credits -= totalBet();
+      // progressive jackpot: every paid bet feeds the pot
+      if (E.JACKPOT >= 0) {
+        state.jackpotPool = Math.round((state.jackpotPool + E.jackpotRate * totalBet()) * 100) / 100;   // keep to the cent: no float drift
+        const d = $('dispJackpot'); d.classList.remove('grow'); void d.offsetWidth; d.classList.add('grow');
+      }
+    }
     updateHud();
     save();
 
     const grid = E.spinGrid();
-    const result = E.evaluate(grid, lineBet());
+    const result = E.evaluate(grid, lineBet(), { jackpotPool: state.jackpotPool });
+    if (result.jackpot) state.jackpotPool = E.jackpotSeed;   // won: the pot restarts from the seed
     await spinReels(grid);
     state.grid = grid;
 
@@ -412,7 +423,7 @@
     feature(E.SCATTER, `<p><b>${scat.name.toUpperCase()} — SCATTER</b></p><p>Pays anywhere on the reels: 3 = <b>${fmt(scat.pays[3] * tb)}</b>, 4 = <b>${fmt(scat.pays[4] * tb)}</b>, 5 = <b>${fmt(scat.pays[5] * tb)}</b>.</p><p>Also awards <b>${E.FREE_SPINS[3]} / ${E.FREE_SPINS[4]} / ${E.FREE_SPINS[5]} free spins</b> for 3 / 4 / 5. Free spins can retrigger.</p>`);
     if (E.JACKPOT >= 0) {
       const jp = E.SYMBOLS[E.JACKPOT];
-      feature(E.JACKPOT, `<p><b>JACKPOT</b></p><p>Pays anywhere on the reels: 3 = <b>${fmt(jp.pays[3] * tb)}</b>, 4 = <b>${fmt(jp.pays[4] * tb)}</b>.</p><p><b>${E.jackpotAt} or more win the JACKPOT: ${fmt(E.jackpotMult * tb)}</b> (${fmt(E.jackpotMult)}× your total bet, shown on the machine).</p>`);
+      feature(E.JACKPOT, `<p><b>JACKPOT</b></p><p>Pays anywhere on the reels: 3 = <b>${fmt(jp.pays[3] * tb)}</b>, 4 = <b>${fmt(jp.pays[4] * tb)}</b>.</p><p><b>${E.jackpotAt} or more win the PROGRESSIVE JACKPOT — currently ${fmt(Math.floor(state.jackpotPool))}</b>, shown on the machine.</p><p>The jackpot grows by ${Math.round(E.jackpotRate * 100)}% of every bet on this machine (${fmt(E.jackpotRate * tb)} per spin at your bet) and is paid in full whatever you bet. After it's won it restarts at ${fmt(E.jackpotSeed)}.</p>`);
     }
 
     body.appendChild(h('h3', `${word[0].toUpperCase() + word.slice(1)} payouts`));
@@ -457,7 +468,7 @@
       `Line wins pay left to right, starting on the leftmost reel, for 3 or more matching ${M.symbolWord}s in a row.`,
       'Only the highest win on each line is paid. Wins on different lines are added together.',
       'Scatter wins are multiplied by the total bet and added to line wins.',
-      ...(E.JACKPOT >= 0 ? [`JACKPOT ${M.symbolWord}s anywhere on the reels pay too, and ${E.jackpotAt} or more win the JACKPOT.`] : []),
+      ...(E.JACKPOT >= 0 ? [`JACKPOT ${M.symbolWord}s anywhere on the reels pay too, and ${E.jackpotAt} or more win the progressive JACKPOT, which grows with every bet.`] : []),
       'Press and hold SPIN to start autoplay. Tap SPIN to stop it.',
       'Free play only: credits have no cash value and are shared by every machine. Run out and you are refilled to 2,000.',
     ].forEach(t => ul.appendChild(h('li', t)));
@@ -573,7 +584,7 @@
       },
     },
     {
-      id: 'unicorn-royale', name: 'Unicorn Royale', tagline: 'Unicorns, rainbows & a 1,000× JACKPOT',
+      id: 'unicorn-royale', name: 'Unicorn Royale', tagline: 'Unicorns, rainbows & a progressive JACKPOT',
       thumb: 'assets/menu/unicorn-royale.webp', ready: true, symbolWord: 'symbol',
       art: {
         aspect: 1184 / 1203,

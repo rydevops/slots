@@ -11,6 +11,14 @@ All notable changes to Gem Royale are listed here. The format follows
 The version shown in the app's Settings matches the newest entry. Versions 1.0.0–1.3.0 were
 released before numbering was added to the app and are recorded here retroactively.
 
+## [1.9.0] - 2026-11-06
+
+### Changed
+- Unicorn Royale's JACKPOT is now a **progressive jackpot**. It starts at 10,000 credits, grows by 2% of every paid bet on the machine, is paid in full (whatever the bet) when 5 or more JACKPOT symbols land, then restarts at 10,000.
+- The machine's JACKPOT plate shows the live pot and glints each time it grows. The pot is saved, so it keeps growing between sessions.
+- The paytable explains how the jackpot grows and shows its current value.
+- `tools/simulate.js` models the growing pot and reports the average jackpot and its share of the return. New `LINE_BET` option.
+
 ## [1.8.0] - 2026-11-06
 
 ### Added
