@@ -124,7 +124,6 @@
   function updateHud() {
     $('credits').textContent = fmt(state.credits);
     $('bet').textContent = state.freeSpins > 0 ? 'FREE' : fmt(totalBet());
-    $('lineBet').textContent = lineBet();
     $('win').textContent = fmt(state.lastWin);
     const fs = state.freeSpinTotal > 0;
     $('fsBar').hidden = !fs;
@@ -132,11 +131,8 @@
     const lock = state.spinning || state.freeSpins > 0;
     $('btnMinus').disabled = lock || state.betIdx === 0;
     $('btnPlus').disabled = lock || state.betIdx === LINE_BETS.length - 1;
-    const btn = $('btnSpin');
-    btn.textContent = state.spinning ? 'STOP' : (state.freeSpins > 0 ? 'FREE' : 'SPIN');
-    btn.classList.toggle('spinning', state.spinning);
-    $('hotSpin').classList.toggle('spinning', state.spinning);
-    $('btnAuto').setAttribute('aria-pressed', String(state.auto));
+    $('btnSpin').classList.toggle('on', state.spinning || state.auto || state.freeSpins > 0);
+    $('autoChip').hidden = !state.auto;
   }
 
   let countTimer = null;
@@ -241,6 +237,12 @@
   // ---------- spin ----------
   const sleep = ms => new Promise(r => setTimeout(r, ms));
 
+  // Tap on SPIN: spin / quick-stop / end autoplay
+  function onSpinTap() {
+    if (state.auto) { state.auto = false; updateHud(); slamStop(); toast('Autoplay off'); return; }
+    spin();
+  }
+
   async function spin() {
     if (state.spinning) { slamStop(); return; }
     const isFree = state.freeSpins > 0;
@@ -275,7 +277,10 @@
     state.spinning = false;
     save();
     updateHud();
-    if (result.total > 0) countUp(result.total);
+    if (result.total > 0) {
+      countUp(result.total);
+      const d = $('dispWin'); d.classList.remove('flash'); void d.offsetWidth; d.classList.add('flash');
+    }
     presentWins(result);
 
     if (result.total > 0) await showBigWin(result.total);
@@ -319,6 +324,7 @@
   function toggleAuto() {
     state.auto = !state.auto;
     updateHud();
+    toast(state.auto ? 'Autoplay on — tap SPIN to stop' : 'Autoplay off');
     if (state.auto && !state.spinning) spin();
   }
 
@@ -379,12 +385,12 @@
     body.appendChild(h('h3', 'How to play'));
     const ul = h('ul', null, 'rules');
     [
-      'Use − / + to choose your line bet. All 20 lines are always active.',
-      'Tap SPIN (on the machine or below it). Tap again while spinning to stop the reels quickly.',
+      'Use − / + to choose your line bet (1–50 per line). All 20 lines are always active; BET shows the total per spin.',
+      'Tap SPIN to play. Tap it again while the reels are moving to stop them quickly.',
       'Line wins pay left to right, starting on the leftmost reel, for 3 or more matching gems in a row.',
       'Only the highest win on each line is paid. Wins on different lines are added together.',
       'Scatter wins are multiplied by the total bet and added to line wins.',
-      'AUTO keeps spinning until you tap it again or run out of credits.',
+      'Press and hold SPIN to start autoplay. Tap SPIN to stop it.',
       'Free play only: credits have no cash value. Run out and you are refilled to 2,000.',
     ].forEach(t => ul.appendChild(h('li', t)));
     body.appendChild(ul);
@@ -409,18 +415,30 @@
     for (let r = 0; r < E.REELS; r++) renderStatic(r, state.grid[r]);
     updateHud();
 
-    bind($('btnSpin'), spin);
-    bind($('hotSpin'), spin);
+    // sprite artwork for each machine button (normal / pressed / active)
+    document.querySelectorAll('.mbtn').forEach(b => {
+      const n = b.dataset.sprite;
+      ['n', 'p', 'a'].forEach(st => b.style.setProperty('--' + st, `url("assets/btn/${n}-${st}.webp")`));
+    });
+
+    // SPIN: tap to spin, press-and-hold for autoplay
+    const spinBtn = $('btnSpin');
+    let holdTimer = null, held = false;
+    spinBtn.addEventListener('pointerdown', () => {
+      held = false;
+      clearTimeout(holdTimer);
+      holdTimer = setTimeout(() => { held = true; if (!state.auto) toggleAuto(); }, 650);
+    });
+    ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => spinBtn.addEventListener(ev, () => clearTimeout(holdTimer)));
+    spinBtn.addEventListener('contextmenu', e => e.preventDefault());
+    spinBtn.addEventListener('click', e => { e.preventDefault(); if (held) { held = false; return; } onSpinTap(); });
+
     bind($('btnMinus'), () => changeBet(-1));
-    bind($('hotMinus'), () => changeBet(-1));
     bind($('btnPlus'), () => changeBet(1));
-    bind($('hotPlus'), () => changeBet(1));
-    bind($('btnAuto'), toggleAuto);
-    bind($('btnHelp'), openHelp);
-    bind($('hotInfo'), openHelp);
-    bind($('hotSettings'), () => { $('verLbl').textContent = window.AppUpdate ? window.AppUpdate.version : 'dev'; openDialog($('settingsDlg')); });
-    bind($('hotSound'), () => toast('Sound is coming in a future update'));
-    bind($('hotFull'), () => {
+    bind($('btnInfo'), openHelp);
+    bind($('btnSettings'), () => { $('verLbl').textContent = window.AppUpdate ? window.AppUpdate.version : 'dev'; openDialog($('settingsDlg')); });
+    bind($('btnSound'), () => toast('Sound is coming in a future update'));
+    bind($('btnFull'), () => {
       const standalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
       if (standalone) toast('Already running full screen');
       else if (document.documentElement.requestFullscreen) {
@@ -440,7 +458,7 @@
     });
 
     window.addEventListener('resize', () => { if (!state.spinning) measure(); });
-    document.addEventListener('keydown', e => { if (e.code === 'Space' && !document.querySelector('dialog[open]')) { e.preventDefault(); spin(); } });
+    document.addEventListener('keydown', e => { if (e.code === 'Space' && !document.querySelector('dialog[open]')) { e.preventDefault(); onSpinTap(); } });
     // stop autoplay when the app is backgrounded
     document.addEventListener('visibilitychange', () => { if (document.hidden && state.auto) { state.auto = false; updateHud(); } });
 
@@ -451,7 +469,8 @@
   window.GemRoyale = { isBusy: () => state.spinning || state.freeSpins > 0, toast };
 
   // wait for artwork before showing the machine
-  const imgs = ['assets/machine.jpg?v=' + (window.AppUpdate ? window.AppUpdate.version : ''), 'assets/gems.webp'];
+  const imgs = ['assets/machine.webp?v=' + (window.AppUpdate ? window.AppUpdate.version : ''), 'assets/gems.webp'];
+  ['settings', 'info', 'sound', 'spin', 'minus', 'plus', 'full'].forEach(n => ['n', 'p', 'a'].forEach(st => imgs.push(`assets/btn/${n}-${st}.webp`)));
   Promise.all(imgs.map(src => new Promise(res => { const i = new Image(); i.onload = i.onerror = res; i.src = src; })))
     .then(() => {
       $('loading').hidden = true;

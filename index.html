@@ -21,7 +21,6 @@
   <main id="app" hidden>
     <div id="stage">
       <div id="machine">
-        <img src="assets/machine.jpg?v=__BUILD__" alt="" draggable="false" id="machineImg">
         <div id="reelWindow">
           <div class="reel"><div class="strip"></div></div>
           <div class="reel"><div class="strip"></div></div>
@@ -29,38 +28,29 @@
           <div class="reel"><div class="strip"></div></div>
           <div class="reel"><div class="strip"></div></div>
           <svg id="lineLayer" viewBox="0 0 500 300" preserveAspectRatio="none"></svg>
+          <div id="fsBar" hidden>FREE SPINS <span id="fsCount">0</span></div>
+          <div id="autoChip" hidden>AUTO</div>
           <div id="winLabel" hidden></div>
           <div id="bigWin" hidden><div class="bw-title"></div><div class="bw-amount"></div></div>
         </div>
-        <!-- Hotspots over the artwork's buttons -->
-        <button class="hot" id="hotSettings" style="left:9.5%;top:73.3%;width:6.8%;height:7.6%" aria-label="Settings"></button>
-        <button class="hot" id="hotInfo" style="left:18.1%;top:73.3%;width:6.8%;height:7.6%" aria-label="Paytable"></button>
-        <button class="hot" id="hotSound" style="left:27.2%;top:73.5%;width:9.6%;height:6.8%" aria-label="Sound"></button>
-        <button class="hot" id="hotSpin" style="left:39.4%;top:70.5%;width:20.1%;height:11.6%" aria-label="Spin"></button>
-        <button class="hot" id="hotMinus" style="left:63.3%;top:73.8%;width:6.1%;height:6.4%" aria-label="Decrease bet"></button>
-        <button class="hot" id="hotPlus" style="left:76.1%;top:73.8%;width:6.1%;height:6.4%" aria-label="Increase bet"></button>
-        <button class="hot" id="hotFull" style="left:84.5%;top:73.3%;width:6.8%;height:7.6%" aria-label="Full screen"></button>
+        <img src="assets/machine.webp?v=__BUILD__" alt="" draggable="false" id="machineImg">
+
+        <!-- Displays printed on the machine -->
+        <div class="disp" id="dispBet"   style="left:10.30%;top:66.21%;width:24.32%;height:6.25%"><span id="bet">0</span></div>
+        <div class="disp" id="dispBal"   style="left:36.49%;top:66.21%;width:27.03%;height:6.25%"><span id="credits">0</span></div>
+        <div class="disp win" id="dispWin" style="left:65.54%;top:66.21%;width:24.16%;height:6.25%"><span id="win">0</span></div>
+
+        <!-- Sprite buttons placed over the machine's printed buttons -->
+        <button class="mbtn" id="btnSettings" data-sprite="settings" style="left:7.26%;top:77.56%;width:7.26%;height:8.55%" aria-label="Settings"></button>
+        <button class="mbtn" id="btnInfo" data-sprite="info" style="left:16.81%;top:77.83%;width:6.93%;height:8.01%" aria-label="Paytable and help"></button>
+        <button class="mbtn" id="btnSound" data-sprite="sound" style="left:26.18%;top:78.54%;width:9.97%;height:6.20%" aria-label="Sound"></button>
+        <button class="mbtn" id="btnSpin" data-sprite="spin" style="left:38.34%;top:72.80%;width:22.47%;height:14.65%" aria-label="Spin (hold for autoplay)"></button>
+        <button class="mbtn" id="btnMinus" data-sprite="minus" style="left:63.68%;top:78.54%;width:5.41%;height:6.21%" aria-label="Decrease bet"></button>
+        <button class="mbtn" id="btnPlus" data-sprite="plus" style="left:77.62%;top:78.42%;width:5.57%;height:6.45%" aria-label="Increase bet"></button>
+        <button class="mbtn" id="btnFull" data-sprite="full" style="left:85.73%;top:77.49%;width:7.09%;height:8.30%" aria-label="Full screen"></button>
       </div>
     </div>
-
-    <section id="panel">
-      <div id="hud">
-        <div class="meter"><span class="lbl">Credits</span><span class="val" id="credits">0</span></div>
-        <div class="meter"><span class="lbl">Total Bet</span><span class="val" id="bet">0</span></div>
-        <div class="meter win"><span class="lbl" id="winLbl">Win</span><span class="val" id="win">0</span></div>
-      </div>
-      <div id="fsBar" hidden>FREE SPINS <span id="fsCount">0</span></div>
-      <div id="controls">
-        <button class="ctl round" id="btnHelp" aria-label="Paytable and help">?</button>
-        <div class="betbox">
-          <button class="ctl round" id="btnMinus" aria-label="Decrease bet">−</button>
-          <div class="betlbl"><small>Line bet</small><b id="lineBet">1</b></div>
-          <button class="ctl round" id="btnPlus" aria-label="Increase bet">+</button>
-        </div>
-        <button class="ctl" id="btnAuto" aria-pressed="false">AUTO</button>
-        <button id="btnSpin" aria-label="Spin">SPIN</button>
-      </div>
-    </section>
+    <p id="hint">Tap <b>SPIN</b> to play · Hold <b>SPIN</b> for autoplay · <b>i</b> for paytable</p>
   </main>
 
   <!-- Paytable / help -->

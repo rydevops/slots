@@ -21,7 +21,8 @@ or free spins are in progress). Settings (⚙ on the machine) also has a manual 
 
 ## Game rules
 - Diamond = Wild (substitutes for all but Opal). Opal = Scatter: pays anywhere and awards free spins.
-- Line bets 1–50 per line, 20 fixed lines. Paytable is in-game via **?** or the **i** button.
+- Line bets 1–50 per line, 20 fixed lines. Paytable is in-game via the **i** button.
+- Tap SPIN to play, tap again to quick-stop; press and hold SPIN for autoplay.
 - Theoretical return is ~96–98% (simulated with `js/engine.js`).
 
 ## Run locally
