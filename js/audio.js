@@ -1,4 +1,4 @@
-// Slots Gallery – music and sound effects, all synthesised with the Web Audio API (no audio files).
+// Gambling Arena – music and sound effects, all synthesised with the Web Audio API (no audio files).
 //
 //   SlotAudio.unlock()            call from a tap: browsers (iOS especially) only allow sound after a gesture
 //   SlotAudio.scene(id)           'lobby' (title + menu) or a machine id: crossfades to that theme
