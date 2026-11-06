@@ -37,8 +37,8 @@ Gem Royale is a free-play gem slot machine. It is built as a PWA (Progressive We
 | `tools/simulate.js` | Payout and bankroll simulator for `js/engine.js` (not deployed). |
 | `tools/bump-version.js` | Bumps the version everywhere (`version.json`, the meta tag and `?v=` queries in `index.html`, `VERSION` in `sw.js`) and adds a `CHANGELOG.md` section. `--check` validates the SemVer 2.0.0 format, that all copies agree, and that the release has a filled-in changelog entry (used by the deploy workflow). |
 | `CHANGELOG.md` | Release notes for every version, in Keep a Changelog format, newest first. |
-| `js/engine.js` | Game math only (no DOM): symbols, weights, payouts, 20 paylines, `spinGrid()`, `evaluate()`. Also loadable in Node for simulations. |
-| `js/app.js` | UI and game loop: reel animation (Web Animations API), win presentation, free spins, autoplay, paytable builder, persistence. |
+| `js/engine.js` | Game math only (no DOM). `DEFS` holds each machine's symbols, weights, payouts and specials; `Engines[id]` is its engine (`spinGrid()`, `evaluate()`), and `Engine` is Gem Royale for older tools. Loadable in Node for simulations. |
+| `js/app.js` | UI and game loop shared by every machine: `MACHINES` config (art + layout), `applyMachine()`/`enterMachine()`, reel animation, win presentation, JACKPOT overlay, free spins, autoplay, paytable builder, persistence. |
 | `js/update.js` | Version check, service worker registration, update-reload logic. |
 | `sw.js` | Service worker: offline cache (`gem-royale-<version>`), network-first with cache fallback. |
 | `version.json` | `{ "version": "x.y.z" }`. This is the source of truth for the version; the app compares it with the version it is running. |
@@ -47,6 +47,11 @@ Gem Royale is a free-play gem slot machine. It is built as a PWA (Progressive We
 | `assets/machine-0..3.webp` | The 4 machine animation frames from the owner's 2×2 frame sheet (0 = normal, 1 = cyan glow + lit title, 2 = strong cyan glow, 3 = bright). Each frame is registered to frame 0 (offsets +639.5/+596 px; same scale), clipped to its own quadrant, and scaled about 1.79× onto a 1184×1024 transparent canvas. The screen hole is transparent. The source art is about half the resolution of the old single machine image, so it is slightly soft; ask the owner for higher-resolution frames if that matters. |
 | `assets/gems.webp` | Gem sprite sheet: 5 columns (animation frames) × 15 rows (gems), each cell 180×104. Rendered as `.gem` (window, overflow hidden) > `.gem-row` (500%×1500%, `translateY` to the gem's row) > `.gem-frames` (`translateX` steps through the frames on a win). |
 | `assets/btn/<name>.webp` | Button sprite strips (names: `settings, info, sound, spin, minus, plus, full`). Each is 4 equal frames side by side, taken from the owner's button sheet: 0 = normal, 1 = bright sparkle, 2 = soft shine, 3 = magenta glow. Each frame has 28% padding on every side for its glow. |
+| `assets/unicorn/machine-0..3.webp` | Unicorn Royale machine frames (1184×1203), from the owner's 2×2 sheet (exact 627 px pitch), scaled ~1.94×. |
+| `assets/unicorn/btn/<name>.webp` | Unicorn Royale button strips, the same 4-frame format as Gem Royale's (0 normal, 1 bright, 2 dark/pressed, 3 rainbow glow). |
+| `assets/unicorn/symbols.webp` | Unicorn Royale symbol sheet in the same 5×15, 180×104-cell format as `gems.webp`. The source sheet had an opaque pastel background, so each symbol was cut out: outline from edge energy on the calm frames 0 and 4, reused for all frames, then background colour keyed out near the edges. A faint tinted fringe remains on some symbols; transparent-background art from the owner would fix it. |
+| `assets/unicorn/jackpot-0..5.webp` | The 6-frame JACKPOT banner (768×341 each). The amount is drawn over its purple plate (left 35.8%, top 76.8%, width 28.4%, height 11.4%). |
+| `assets/unicorn/bg.jpg` | Blurred page background for Unicorn Royale. |
 | `assets/start/bg-0..3.webp` | Start-screen background frames (832×466 each), cut from the owner's 2×2 casino sheet (tile origins (0,0), (836,0), (0,471), (836,471)). |
 | `assets/start/title-0..3.webp` | "Slots Gallery" title frames (1149×370 each), cut from the owner's 4-row title sheet (frame tops at y = 20, 363, 704, 1047). Each frame is clipped to its own band, and glow is kept only near the artwork, so stray glow noise on the sheet is dropped. |
 | `assets/menu/<machine-id>.webp` | Menu card thumbnails (frame 0 of each machine, with its screen hole filled dark). |
@@ -62,9 +67,10 @@ Gem Royale is a free-play gem slot machine. It is built as a PWA (Progressive We
 ## Machine menu
 
 - Flow: start screen → `#menuScreen` (machine select) → game (`#app`). The ‹ MENU button in the game and "Back to machine menu" in Settings go back. Leaving is blocked mid-spin and during free spins, and turns autoplay off.
-- `MACHINES` in `app.js` lists every machine (`id`, `name`, `tagline`, `thumb`, `ready`). `ready: false` shows a dimmed "COMING SOON" card with a NEW ribbon. `openMachine(id)` currently only knows `gem-royale`.
+- `MACHINES` in `app.js` lists every machine: `id`, `name`, `tagline`, `thumb`, `ready`, `symbolWord` ('gem'/'symbol', used in the paytable), `art` (aspect, 4 frames, symbol sheet, button strips, page bg, optional 6 jackpot frames) and `layout` ([left, top, width, height] percentages for `reels`, `bet`, `bal`, `win`, optional `jackpot` plate, and every `btn*`). `ready: false` shows a dimmed "COMING SOON" card.
+- `openMachine(id)` waits for that machine's art, then `enterMachine()` → `applyMachine()` points the one shared game screen at it (`--ar`, `--symSheet`, frame and button images, element positions, `#machine.m-<id>` class) and loads its saved state.
+- **Adding a machine:** add its math to `DEFS` in `engine.js`, tune it with `MACHINE=<id> node tools/simulate.js`, cut its art into the same formats, measure its layout, add a `MACHINES` entry, a menu thumbnail and `sw.js` cache entries.
 - The menu is a **placeholder design**: it reuses the start-screen background and title. The owner will supply menu artwork later.
-- **Unicorn Royale** (next machine) art was supplied: a 4-frame machine sheet, a 4-column button sheet (normal, bright, pressed/dark, rainbow glow), a 15-symbol × 5-frame symbol sheet on an opaque gradient background, and a 6-frame JACKPOT banner. Only its menu thumbnail is in the repo so far. Adding it will need `engine.js`/`app.js` to support more than one machine (per-machine symbols, payouts, art and overlay positions).
 
 ## Layout of the machine
 
@@ -92,10 +98,15 @@ Gem Royale is a free-play gem slot machine. It is built as a PWA (Progressive We
   - RTP (return to player) of about 103%, with about 49% of paid spins winning something and about 30% paying back at least the total bet; volatility is about 2.0 (standard deviation per spin, in total bets).
   - Starting at 2,000 credits, players run out within 300 spins about 0% of the time at bet 20, about 7% at bet 40, and about 46% at bet 100. Bets of 200 or more are meant to stay risky.
 - The Diamond's weight (`w: 12`) is the main lever for how often spins win, because it substitutes on every line. The 3-of-a-kind payouts carry most of the return; 4- and 5-of-a-kind are kept modest to keep volatility down.
-- After changing weights or payouts, run `node tools/simulate.js`. Keep RTP between 101% and 106%, volatility around 2.0–2.5, and the bet-20 and bet-40 bust rates (from 2,000 credits) at or below 10%.
+- After changing weights or payouts, run `node tools/simulate.js` (add `MACHINE=unicorn-royale` for Unicorn Royale). Keep RTP between 101% and 106%, volatility around 2.0–2.5, and the bet-20 and bet-40 bust rates (from 2,000 credits) at or below 10%.
 - Win presentation: all winning lines at once, then each win in turn. A win of 15× the bet or more shows BIG WIN, 40× MEGA WIN, and 100× EPIC WIN.
 - Controls: tap SPIN to spin, tap again while the reels move to stop them quickly, and press-and-hold SPIN to start autoplay (tap SPIN to stop it). **i** opens the paytable, ⚙ opens settings (reset credits, check for updates, version), and the full-screen button shows a hint on iOS.
-- State is saved in `localStorage` under the key `gem-royale-state-v1`.
+- State: credits are **shared by every machine** and stored in `gem-royale-state-v1` (the original key, so old saves still work). Each machine's bet and free spins live in its own key: Gem Royale's in `gem-royale-state-v1`, others in `<id>-state-v1`.
+
+### Unicorn Royale
+- Same reels, lines, bets and free-spin rules as Gem Royale. **Rainbow (id 3) is wild; Cloud Castle (id 9) is the scatter.**
+- **JACKPOT (id 14)** pays anywhere and is not substituted by the wild: 3 = 2×, 4 = 10× the total bet; `jackpotAt` (5) or more win the JACKPOT = `jackpotMult` (1,000) × total bet. The amount for the current bet is shown on the machine's JACKPOT plate, and a win plays the 6-frame banner overlay (tap to collect).
+- Measured: RTP ≈ 106% (about 5% of it from the jackpot), ~49% of spins win, ~32% pay back the bet, and a jackpot about every 20,000 spins. Volatility is ~7 because of the 1,000× jackpot. Bust rates from 2,000 credits: 0% / 8% / 50% at bet 20 / 40 / 100. Keep these when retuning.
 
 Simulation: `node tools/simulate.js` prints RTP, hit rates and volatility, plus how often players run out of credits at each bet, starting from 2,000 and from 300 credits. Use `SPINS=200000 SESSIONS=500` for a quicker run. `tools/` is not deployed.
 
@@ -113,5 +124,7 @@ Simulation: `node tools/simulate.js` prints RTP, hit rates and volatility, plus 
 python3 -m http.server 8000      # from the repo root, then open http://localhost:8000
 ```
 - To test the update flow, serve a copy of the site from a temp folder, open it, then run `node tools/bump-version.js patch` inside that copy and trigger a resume (a `visibilitychange` event). The page should reload to the start screen showing the new version.
-- Tests must tap through the start screen (wait for `#startScreen:not([hidden])`, click it), then pick Gem Royale in the menu (`.mn-card[data-machine="gem-royale"]`) before the game controls exist.
+- Tests must tap through the start screen (wait for `#startScreen:not([hidden])`, click it), then pick a machine in the menu (`.mn-card[data-machine="<id>"]`) before the game controls exist. Test **both** machines.
+- To force a result, replace that machine's `Engines[id].spinGrid` in the page with one that returns a fixed grid once (e.g. five JACKPOT symbols to see the jackpot overlay).
+- `sw.js` de-duplicates `SHELL` before `cache.addAll()`; duplicate requests make `addAll` reject and nothing gets cached.
 - Use Playwright with `devices['iPhone 14']`, `devices['iPhone 14 landscape']` and `devices['iPhone SE']`. Check that there are no page errors, the machine fits the screen, spin/bet/autoplay/help work, and nothing overflows horizontally.

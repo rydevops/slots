@@ -11,6 +11,23 @@ All notable changes to Gem Royale are listed here. The format follows
 The version shown in the app's Settings matches the newest entry. Versions 1.0.0–1.3.0 were
 released before numbering was added to the app and are recorded here retroactively.
 
+## [1.8.0] - 2026-11-06
+
+### Added
+- **Unicorn Royale is playable**: its own animated machine, buttons, 15 animated symbols and a 6-frame JACKPOT banner.
+  - Rainbow is wild; Cloud Castle is the free-spins scatter (8 / 12 / 20 spins).
+  - JACKPOT symbols pay anywhere: 3 = 2× and 4 = 10× the total bet; 5 or more win the JACKPOT (1,000× the total bet, shown on the machine's JACKPOT plate).
+  - Tuned like Gem Royale: ~106% return, about half of spins win, and low bets rarely run out of credits. The jackpot lands about once in 20,000 spins.
+- `MACHINE=<id>` option for `tools/simulate.js`.
+
+### Changed
+- One shared balance across all machines; each machine remembers its own bet and free spins. Existing Gem Royale saves carry over.
+- The game screen is now driven by a per-machine config (art, layout, math), so new machines can be added without new screens.
+- Paytable wording adapts to the machine (gems vs symbols, jackpot section).
+
+### Fixed
+- The offline cache list contained duplicate URLs, which can make the service worker cache nothing at all.
+
 ## [1.7.0] - 2026-11-06
 
 ### Added
