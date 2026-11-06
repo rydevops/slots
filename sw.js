@@ -9,13 +9,15 @@ const SHELL = [
   'js/engine.js?v=' + VERSION,
   'js/update.js?v=' + VERSION,
   'js/app.js?v=' + VERSION,
-  'assets/machine.jpg?v=' + VERSION,
+  'assets/machine.webp?v=' + VERSION,
   'assets/gems.webp',
   'assets/bg.jpg',
   'icons/icon-180.png',
   'icons/icon-192.png',
   'icons/icon-512.png',
 ];
+['settings', 'info', 'sound', 'spin', 'minus', 'plus', 'full'].forEach(n =>
+  ['n', 'p', 'a'].forEach(st => SHELL.push(`assets/btn/${n}-${st}.webp`)));
 
 self.addEventListener('install', event => {
   event.waitUntil(
