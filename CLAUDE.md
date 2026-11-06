@@ -19,7 +19,7 @@ Gem Royale is a free-play gem slot machine. It is built as a PWA (Progressive We
 
    Bump it with `node tools/bump-version.js <patch|minor|major>`; it updates every place the version appears and adds a `## [x.y.z] - date` section to `CHANGELOG.md`. **Replace that section's TODO with what changed**, in Keep a Changelog style (`### Added / Changed / Fixed / Removed`). Never edit the version numbers by hand. Use one bump per PR: if a branch already has a bump and more changes are added, edit that changelog entry instead of bumping again. If the kind of change grows (e.g. a patch becomes a feature), re-run with an explicit version (e.g. `node tools/bump-version.js 1.7.0`). Run `node tools/bump-version.js --check` before pushing; the deploy runs the same check.
 5. **Always include the new version number in the chat response** to the owner (e.g. "Version: 1.4.0 → 1.5.0"), and put it in the PR title or description too, so the owner can match it with what Settings shows in the app.
-6. Do not add sound until the owner asks for it. The 🔊 button only shows a "coming soon" toast.
+6. Sound is generated in code by `js/audio.js` (Web Audio API); there are no audio files. Every new screen or machine needs its own music theme and appropriate sound effects, and new UI should call `SlotAudio.sfx()`.
 
 ## Tech stack
 
@@ -39,6 +39,7 @@ Gem Royale is a free-play gem slot machine. It is built as a PWA (Progressive We
 | `CHANGELOG.md` | Release notes for every version, in Keep a Changelog format, newest first. |
 | `js/engine.js` | Game math only (no DOM). `DEFS` holds each machine's symbols, weights, payouts and specials; `Engines[id]` is its engine (`spinGrid()`, `evaluate()`), and `Engine` is Gem Royale for older tools. Loadable in Node for simulations. |
 | `js/app.js` | UI and game loop shared by every machine: `MACHINES` config (art + layout), `applyMachine()`/`enterMachine()`, reel animation, win presentation, JACKPOT overlay, free spins, autoplay, paytable builder, persistence. |
+| `js/audio.js` | `SlotAudio`: all music and sound effects, synthesised with the Web Audio API (see *Sound*). |
 | `js/update.js` | Version check, service worker registration, update-reload logic. |
 | `sw.js` | Service worker: offline cache (`gem-royale-<version>`), network-first with cache fallback. |
 | `version.json` | `{ "version": "x.y.z" }`. This is the source of truth for the version; the app compares it with the version it is running. |
@@ -100,7 +101,7 @@ Gem Royale is a free-play gem slot machine. It is built as a PWA (Progressive We
 - The Diamond's weight (`w: 12`) is the main lever for how often spins win, because it substitutes on every line. The 3-of-a-kind payouts carry most of the return; 4- and 5-of-a-kind are kept modest to keep volatility down.
 - After changing weights or payouts, run `node tools/simulate.js` (add `MACHINE=unicorn-royale` for Unicorn Royale). Keep RTP between 101% and 106%, volatility around 2.0–2.5, and the bet-20 and bet-40 bust rates (from 2,000 credits) at or below 10%.
 - Win presentation: all winning lines at once, then each win in turn. A win of 15× the bet or more shows BIG WIN, 40× MEGA WIN, and 100× EPIC WIN.
-- Controls: tap SPIN to spin, tap again while the reels move to stop them quickly, and press-and-hold SPIN to start autoplay (tap SPIN to stop it). **i** opens the paytable, ⚙ opens settings (reset credits, check for updates, version), and the full-screen button shows a hint on iOS.
+- Controls: tap SPIN to spin, tap again while the reels move to stop them quickly, and press-and-hold SPIN to start autoplay (tap SPIN to stop it). **i** opens the paytable, ⚙ opens settings (music/SFX switches and volumes, reset credits, check for updates, version), 🔊 mutes or unmutes all sound, and the full-screen button shows a hint on iOS.
 - State: credits are **shared by every machine** and stored in `gem-royale-state-v1` (the original key, so old saves still work). Each machine's bet and free spins live in its own key: Gem Royale's in `gem-royale-state-v1`, others in `<id>-state-v1`.
 
 ### Unicorn Royale
@@ -113,6 +114,35 @@ Gem Royale is a free-play gem slot machine. It is built as a PWA (Progressive We
 - Measured (`MACHINE=unicorn-royale LINE_BET=<n> node tools/simulate.js`): a jackpot about every 14,000–16,000 spins; average pot ≈ 15k at bet 20, 39k at bet 100, 335k at bet 1,000. RTP ≈ 107% / 104% / 103% at bet 20 / 100 / 1,000 (the jackpot is 6% / 3% / 2% of it, since the fixed seed matters more at small bets). ~49% of spins win, ~32% pay back the bet. Bust rates from 2,000 credits: 0% / 8–9% / 48% at bet 20 / 40 / 100. Keep these when retuning.
 
 Simulation: `node tools/simulate.js` (options `MACHINE`, `LINE_BET`, `SPINS`, `SESSIONS`) prints RTP, hit rates and volatility, plus how often players run out of credits at each bet, starting from 2,000 and from 300 credits. Use `SPINS=200000 SESSIONS=500` for a quicker run. `tools/` is not deployed.
+
+## Sound
+
+- `js/audio.js` exposes `SlotAudio`:
+  - `unlock()`: call from a tap; iOS allows no sound before a gesture, so the start-screen tap and menu taps call it;
+  - `scene(id)`: `'lobby'` (start screen + menu) or a machine id; crossfades to that theme;
+  - `sfx(name, opts)`, `reels(on)` (reel ticks), `duck(seconds)`;
+  - `set(key, value)` and `settings` (`music`, `sfx`, `musicVol`, `sfxVol`, saved in `slots-audio-v1`);
+  - `meter()` (output peak/rms), and `output`/`context` for recording in tests.
+- **Signal chain:** buses `musicBus` and `sfxBus` → master (0.8) → compressor/limiter → speakers, plus a shared generated-impulse reverb send.
+- **Instruments** (`INST`): `epiano`, `bell` (FM), `harp`, `celesta`, `pad`, `bass`, `brass`, plus drums (`kick`, `snare`, `hat`, `shaker`) from filtered noise.
+- **Themes** (`THEMES`):
+  - `lobby`: C lounge jazz, 96 bpm, e-piano;
+  - `gem-royale`: F casino swing, 116 bpm, bells;
+  - `unicorn-royale`: D, 84 bpm, harp arpeggios + celesta.
+
+  Each theme has bpm, 4 chords (`bass` + `notes`), an 8-bar `melody` ([16th step, MIDI note, length in steps]), an arpeggio, a bass pattern, drums and an `sfxVoice` (the instrument its win jingles use). A 25 ms look-ahead scheduler plays 16th-note steps.
+- **SFX names:** `tap, press, start, select, back, bet, spin, reelTick, reelStop, winSmall, winMedium, coin, bigWin, freeSpins, jackpot, noCredits, autoOn, autoOff`. Fanfares duck the music.
+- **Where `app.js` triggers them:**
+  - spin start → `spin`, with reel ticks while the reels move, and `reelStop` per reel;
+  - win → `winSmall` (< 3× bet) or `winMedium` (< 15×), else `bigWin` / `jackpot`;
+  - coin ticks during the WIN count-up;
+  - free spins → `freeSpins`;
+  - bet change → `bet` (pitch follows the bet level);
+  - machine buttons → `press`;
+  - menu → `select` / `back`.
+- **Controls:** the machine's 🔊 button toggles all sound, as does the menu's 🔊; Settings has Music and SFX switches and volumes.
+- **iOS:** `navigator.audioSession.type = 'ambient'`, so sound respects the silent switch and mixes with other apps. The context is suspended while hidden and resumed on return or on the next tap.
+- **Levels:** no effect should exceed a peak of ~0.7 on `SlotAudio.meter()` (the jackpot fanfare was turned down after it clipped at 1.08).
 
 ## Versioning and auto-update
 
@@ -131,4 +161,5 @@ python3 -m http.server 8000      # from the repo root, then open http://localhos
 - Tests must tap through the start screen (wait for `#startScreen:not([hidden])`, click it), then pick a machine in the menu (`.mn-card[data-machine="<id>"]`) before the game controls exist. Test **both** machines.
 - To force a result, replace that machine's `Engines[id].spinGrid` in the page with one that returns a fixed grid once (e.g. five JACKPOT symbols to see the jackpot overlay).
 - `sw.js` de-duplicates `SHELL` before `cache.addAll()`; duplicate requests make `addAll` reject and nothing gets cached.
+- **Sound:** launch Chromium with `--autoplay-policy=no-user-gesture-required`, tap the start screen, then sample `SlotAudio.meter()` per scene and per `SlotAudio.sfx(name)`. Every one should be audible, and peaks should stay ≤ ~0.7. To hear it, tap `SlotAudio.output` with a ScriptProcessor and write a WAV.
 - Use Playwright with `devices['iPhone 14']`, `devices['iPhone 14 landscape']` and `devices['iPhone SE']`. Check that there are no page errors, the machine fits the screen, spin/bet/autoplay/help work, and nothing overflows horizontally.
