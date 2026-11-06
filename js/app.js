@@ -415,10 +415,25 @@
     for (let r = 0; r < E.REELS; r++) renderStatic(r, state.grid[r]);
     updateHud();
 
-    // sprite artwork for each machine button (normal / pressed / active)
-    document.querySelectorAll('.mbtn').forEach(b => {
-      const n = b.dataset.sprite;
-      ['n', 'p', 'a'].forEach(st => b.style.setProperty('--' + st, `url("assets/btn/${n}-${st}.webp")`));
+    // sprite strip for each machine button, with a staggered idle shimmer
+    document.querySelectorAll('.mbtn').forEach((b, i) => {
+      // absolute URL: a relative url() inside a custom property would resolve against css/
+      const src = new URL(`assets/btn/${b.dataset.sprite}.webp`, document.baseURI).href;
+      b.style.setProperty('--strip', `url("${src}")`);
+      b.style.setProperty('--delay', `${(i * 0.55).toFixed(2)}s`);
+      // press / release frame animation (works on iOS, where :active is unreliable)
+      let downAt = 0;
+      const release = () => {
+        if (!b.classList.contains('pressed')) return;
+        const wait = Math.max(0, 90 - (performance.now() - downAt));
+        setTimeout(() => {
+          b.classList.remove('pressed');
+          b.classList.remove('tapped'); void b.offsetWidth; b.classList.add('tapped');
+        }, wait);
+      };
+      b.addEventListener('pointerdown', () => { if (b.disabled) return; downAt = performance.now(); b.classList.add('pressed'); });
+      ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => b.addEventListener(ev, release));
+      b.addEventListener('animationend', e => { if (e.animationName === 'btnTap') b.classList.remove('tapped'); });
     });
 
     // SPIN: tap to spin, press-and-hold for autoplay
@@ -470,7 +485,7 @@
 
   // wait for artwork before showing the machine
   const imgs = ['assets/machine.webp?v=' + (window.AppUpdate ? window.AppUpdate.version : ''), 'assets/gems.webp'];
-  ['settings', 'info', 'sound', 'spin', 'minus', 'plus', 'full'].forEach(n => ['n', 'p', 'a'].forEach(st => imgs.push(`assets/btn/${n}-${st}.webp`)));
+  ['settings', 'info', 'sound', 'spin', 'minus', 'plus', 'full'].forEach(n => imgs.push(`assets/btn/${n}.webp`));
   Promise.all(imgs.map(src => new Promise(res => { const i = new Image(); i.onload = i.onerror = res; i.src = src; })))
     .then(() => {
       $('loading').hidden = true;
