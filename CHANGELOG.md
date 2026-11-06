@@ -11,6 +11,14 @@ All notable changes to Gem Royale are listed here. The format follows
 The version shown in the app's Settings matches the newest entry. Versions 1.0.0–1.3.0 were
 released before numbering was added to the app and are recorded here retroactively.
 
+## [1.11.0] - 2026-11-06
+
+### Changed
+- Machine menu cards now use the supplied Gem Royale and Unicorn Royale artwork. The whole card, with its built-in PLAY button, is the tap target, rounded to match its gold border, with a soft light sweeping across it. "LOADING…" appears over the PLAY button while a machine loads.
+
+### Removed
+- The placeholder card frame, name, tagline, PLAY badge and NEW ribbon.
+
 ## [1.10.0] - 2026-11-06
 
 ### Added

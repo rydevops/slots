@@ -687,18 +687,18 @@
     const list = $('machineList');
     list.replaceChildren();
     MACHINES.forEach(m => {
+      // the card is the machine's own artwork (with PLAY built in): tap anywhere on it to play
       const card = document.createElement('button');
       card.className = 'mn-card';
       card.dataset.machine = m.id;
       card.disabled = !m.ready;
-      card.setAttribute('aria-label', m.ready ? `Play ${m.name}` : `${m.name}, coming soon`);
+      card.setAttribute('aria-label', m.ready ? `Play ${m.name}: ${m.tagline}` : `${m.name}, coming soon`);
       const img = document.createElement('img');
       img.src = assetUrl(m.thumb); img.alt = ''; img.draggable = false;
-      const nm = document.createElement('div'); nm.className = 'nm'; nm.textContent = m.name;
-      const tg = document.createElement('div'); tg.className = 'tg'; tg.textContent = m.tagline;
-      const badge = document.createElement('div'); badge.className = 'badge'; badge.textContent = m.ready ? 'PLAY' : 'COMING SOON';
-      card.append(img, nm, tg, badge);
-      if (m.id === 'unicorn-royale') { const r = document.createElement('div'); r.className = 'ribbon'; r.textContent = 'NEW'; card.append(r); }
+      const shine = document.createElement('span'); shine.className = 'shine';
+      // sits over the art's PLAY pill; shows LOADING… / COMING SOON
+      const badge = document.createElement('span'); badge.className = 'badge'; badge.textContent = m.ready ? '' : 'COMING SOON';
+      card.append(img, shine, badge);
       card.addEventListener('click', () => { if (m.ready) openMachine(m.id); });
       list.appendChild(card);
     });
@@ -718,10 +718,11 @@
     if (!m || !m.ready || opening) return;
     opening = true;
     A.unlock(); A.sfx('select');
-    const badge = document.querySelector(`.mn-card[data-machine="${id}"] .badge`);
-    if (badge) badge.textContent = 'LOADING…';
+    const card = document.querySelector(`.mn-card[data-machine="${id}"]`);
+    const badge = card && card.querySelector('.badge');
+    if (badge) { badge.textContent = 'LOADING…'; card.classList.add('loading'); }
     await machineReady(m);
-    if (badge) badge.textContent = 'PLAY';
+    if (badge) { badge.textContent = ''; card.classList.remove('loading'); }
     if (!wired) { wired = true; initOnce(); }
     $('app').hidden = false;
     $('menuScreen').hidden = true;
