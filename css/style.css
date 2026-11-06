@@ -198,8 +198,9 @@ button { font: inherit; color: inherit; touch-action: manipulation; cursor: poin
    wider than the screen – only the outer neon trim gets clipped. */
 #machine {
   position: relative; flex: 0 0 auto;
-  width: min(110vw, calc((100dvh - var(--sa-top) - var(--sa-bottom) - 70px) * 1.15625), 900px);
-  aspect-ratio: 1184 / 1024;
+  /* --ar = artwork width / height, set per machine by app.js */
+  width: min(110vw, calc((100dvh - var(--sa-top) - var(--sa-bottom) - 70px) * var(--ar, 1.15625)), 900px);
+  aspect-ratio: var(--ar, 1.15625);
   container-type: inline-size;
   filter: drop-shadow(0 10px 30px rgba(0,0,0,.6));
 }
@@ -256,7 +257,8 @@ button { font: inherit; color: inherit; touch-action: manipulation; cursor: poin
 .gem-row { position: absolute; left: 0; top: 0; width: 500%; height: 1500%; }
 .gem-frames {
   position: absolute; inset: 0;
-  background: url("../assets/gems.webp") 0 0 / 100% 100% no-repeat;
+  /* --symSheet is set per machine by app.js (an absolute URL) */
+  background: var(--symSheet, url("../assets/gems.webp")) 0 0 / 100% 100% no-repeat;
 }
 .dim .gem { opacity: .28; filter: saturate(.6); }
 .cell.hit .gem {
@@ -431,7 +433,7 @@ button { font: inherit; color: inherit; touch-action: manipulation; cursor: poin
 
 @media (orientation: landscape) and (max-height: 600px) {
   #hint { display: none; }
-  #machine { width: min(100vw, calc((100dvh - var(--sa-top) - var(--sa-bottom) - 12px) * 1.15625)); }
+  #machine { width: min(100vw, calc((100dvh - var(--sa-top) - var(--sa-bottom) - 12px) * var(--ar, 1.15625))); }
 }
 
 /* ---------- Dialogs ---------- */
@@ -514,3 +516,45 @@ dialog::backdrop { background: rgba(5,0,10,.7); }
   .mbtn.on .frames { animation: btnActiveFrames 1.4s step-end infinite !important; }
   .mbtn.on .art { animation: btnActiveArt 1.4s step-end infinite !important; }
 }
+
+/* ---------- Per-machine tweaks ---------- */
+/* Unicorn Royale's cabinet is complete at the bottom, so no fade-out mask */
+#machine.m-unicorn-royale #machineArt { -webkit-mask-image: none; mask-image: none; }
+#machine.m-unicorn-royale #reelWindow { background: radial-gradient(ellipse at 50% 40%, #4a1a6a, #1a0628 75%); }
+
+/* JACKPOT amount, printed over the machine's JACKPOT plate */
+#dispJackpot {
+  position: absolute; z-index: 3; pointer-events: none;
+  display: flex; align-items: center; justify-content: center; gap: .45em;
+  border-radius: 999px; background: #0d0710;
+  font-weight: 900; letter-spacing: .06em; white-space: nowrap;
+  font-size: 2.3cqw; color: var(--gold);
+  text-shadow: 0 0 6px rgba(245, 200, 76, .6);
+}
+#dispJackpot[hidden] { display: none; }
+#dispJackpot small { font-size: .8em; color: #ffd6f5; letter-spacing: .12em; }
+
+/* ---------- JACKPOT win overlay (6-frame banner) ---------- */
+#jackpotWin {
+  position: fixed; inset: 0; z-index: 30;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+  background: radial-gradient(ellipse at center, rgba(70, 14, 90, .82), rgba(10, 2, 16, .94));
+  animation: jpIn .4s ease-out both;
+}
+#jackpotWin[hidden] { display: none; }
+@keyframes jpIn { from { opacity: 0; } to { opacity: 1; } }
+.jp-banner {
+  position: relative; width: min(98vw, 760px, 190dvh); aspect-ratio: 768 / 341;
+  animation: pop .6s cubic-bezier(.2, 1.5, .4, 1) both;
+}
+.jp-banner img { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; transition: opacity .18s linear; }
+.jp-banner img.on { opacity: 1; }
+.jp-amount {
+  position: absolute; left: 35.8%; top: 76.8%; width: 28.4%; height: 11.4%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 900; font-size: clamp(13px, 3.6vw, 30px); letter-spacing: .03em;
+  color: #fff6cf; text-shadow: 0 0 8px rgba(255, 210, 90, .95), 0 2px 0 #5a2a00;
+  font-variant-numeric: tabular-nums;
+}
+.jp-tap { margin: 0; color: #f3dcff; font-size: 14px; letter-spacing: .12em; opacity: 0; transition: opacity .4s; }
+.jp-tap.show { opacity: .85; animation: stTap 1.4s ease-in-out infinite; }

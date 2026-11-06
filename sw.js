@@ -1,5 +1,5 @@
 // Gem Royale service worker. VERSION is set by tools/bump-version.js; changing it renames the offline cache.
-const VERSION = '1.7.0';
+const VERSION = '1.8.0';
 const CACHE = 'gem-royale-' + VERSION;
 const SHELL = [
   './',
@@ -22,11 +22,18 @@ const SHELL = [
 ['settings', 'info', 'sound', 'spin', 'minus', 'plus', 'full'].forEach(n => SHELL.push(`assets/btn/${n}.webp`));
 [0, 1, 2, 3].forEach(i => SHELL.push(`assets/start/bg-${i}.webp?v=${VERSION}`, `assets/start/title-${i}.webp?v=${VERSION}`));
 ['gem-royale', 'unicorn-royale'].forEach(n => SHELL.push(`assets/menu/${n}.webp?v=${VERSION}`));
+// Machine artwork (app.js requests these with ?v=VERSION)
+const BTNS = ['settings', 'info', 'sound', 'spin', 'minus', 'plus', 'full'];
+[0, 1, 2, 3].forEach(i => SHELL.push(`assets/machine-${i}.webp?v=${VERSION}`, `assets/unicorn/machine-${i}.webp?v=${VERSION}`));
+BTNS.forEach(n => SHELL.push(`assets/btn/${n}.webp?v=${VERSION}`, `assets/unicorn/btn/${n}.webp?v=${VERSION}`));
+[0, 1, 2, 3, 4, 5].forEach(i => SHELL.push(`assets/unicorn/jackpot-${i}.webp?v=${VERSION}`));
+SHELL.push(`assets/gems.webp?v=${VERSION}`, `assets/bg.jpg?v=${VERSION}`,
+  `assets/unicorn/symbols.webp?v=${VERSION}`, `assets/unicorn/bg.jpg?v=${VERSION}`);
 
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE)
-      .then(c => c.addAll(SHELL.map(u => new Request(u, { cache: 'reload' }))))
+      .then(c => c.addAll([...new Set(SHELL)].map(u => new Request(u, { cache: "reload" }))))
       .catch(() => {})
       .then(() => self.skipWaiting())
   );
