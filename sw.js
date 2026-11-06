@@ -1,5 +1,5 @@
 // Gem Royale service worker. VERSION is set by tools/bump-version.js; changing it renames the offline cache.
-const VERSION = '1.6.0';
+const VERSION = '1.7.0';
 const CACHE = 'gem-royale-' + VERSION;
 const SHELL = [
   './',
@@ -21,6 +21,7 @@ const SHELL = [
 ];
 ['settings', 'info', 'sound', 'spin', 'minus', 'plus', 'full'].forEach(n => SHELL.push(`assets/btn/${n}.webp`));
 [0, 1, 2, 3].forEach(i => SHELL.push(`assets/start/bg-${i}.webp?v=${VERSION}`, `assets/start/title-${i}.webp?v=${VERSION}`));
+['gem-royale', 'unicorn-royale'].forEach(n => SHELL.push(`assets/menu/${n}.webp?v=${VERSION}`));
 
 self.addEventListener('install', event => {
   event.waitUntil(

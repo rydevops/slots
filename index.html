@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-  <meta name="app-version" content="1.6.0">
+  <meta name="app-version" content="1.7.0">
   <title>Gem Royale</title>
   <meta name="theme-color" content="#1a0626">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -13,7 +13,7 @@
   <link rel="apple-touch-icon" href="icons/icon-180.png">
   <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="css/style.css?v=1.6.0">
+  <link rel="stylesheet" href="css/style.css?v=1.7.0">
 </head>
 <body>
   <div id="loading"><div class="spinner"></div><p>Polishing gems…</p></div>
@@ -21,23 +21,41 @@
   <!-- Start screen: animated casino background + animated title, "tap to start" -->
   <section id="startScreen" hidden aria-label="Slots Gallery. Tap to start.">
     <div class="st-bg" aria-hidden="true">
-      <img class="sb sb0" src="assets/start/bg-0.webp?v=1.6.0" alt="" draggable="false">
-      <img class="sb sb1" src="assets/start/bg-1.webp?v=1.6.0" alt="" draggable="false">
-      <img class="sb sb2" src="assets/start/bg-2.webp?v=1.6.0" alt="" draggable="false">
-      <img class="sb sb3" src="assets/start/bg-3.webp?v=1.6.0" alt="" draggable="false">
+      <img class="sb sb0" src="assets/start/bg-0.webp?v=1.7.0" alt="" draggable="false">
+      <img class="sb sb1" src="assets/start/bg-1.webp?v=1.7.0" alt="" draggable="false">
+      <img class="sb sb2" src="assets/start/bg-2.webp?v=1.7.0" alt="" draggable="false">
+      <img class="sb sb3" src="assets/start/bg-3.webp?v=1.7.0" alt="" draggable="false">
     </div>
     <div class="st-shade" aria-hidden="true"></div>
     <div class="st-title" role="img" aria-label="Slots Gallery">
-      <img class="stt stt0" src="assets/start/title-0.webp?v=1.6.0" alt="" draggable="false">
-      <img class="stt stt1" src="assets/start/title-1.webp?v=1.6.0" alt="" draggable="false">
-      <img class="stt stt2" src="assets/start/title-2.webp?v=1.6.0" alt="" draggable="false">
-      <img class="stt stt3" src="assets/start/title-3.webp?v=1.6.0" alt="" draggable="false">
+      <img class="stt stt0" src="assets/start/title-0.webp?v=1.7.0" alt="" draggable="false">
+      <img class="stt stt1" src="assets/start/title-1.webp?v=1.7.0" alt="" draggable="false">
+      <img class="stt stt2" src="assets/start/title-2.webp?v=1.7.0" alt="" draggable="false">
+      <img class="stt stt3" src="assets/start/title-3.webp?v=1.7.0" alt="" draggable="false">
     </div>
     <p class="st-tap" id="startTap">TAP TO START</p>
     <p class="st-ver" id="startVer"></p>
   </section>
 
+  <!-- Machine select menu (placeholder art: real menu artwork to come) -->
+  <section id="menuScreen" hidden aria-label="Choose a slot machine">
+    <div class="st-bg" aria-hidden="true">
+      <img class="sb sb0" src="assets/start/bg-0.webp?v=1.7.0" alt="" draggable="false">
+      <img class="sb sb1" src="assets/start/bg-1.webp?v=1.7.0" alt="" draggable="false">
+      <img class="sb sb2" src="assets/start/bg-2.webp?v=1.7.0" alt="" draggable="false">
+      <img class="sb sb3" src="assets/start/bg-3.webp?v=1.7.0" alt="" draggable="false">
+    </div>
+    <div class="st-shade mn-shade" aria-hidden="true"></div>
+    <div class="mn-inner">
+      <img class="mn-title" src="assets/start/title-0.webp?v=1.7.0" alt="Slots Gallery" draggable="false">
+      <h1 class="mn-head">Choose a machine</h1>
+      <div class="mn-list" id="machineList"></div>
+      <p class="st-ver" id="menuVer"></p>
+    </div>
+  </section>
+
   <main id="app" hidden>
+    <button id="btnMenu" aria-label="Back to machine menu">‹ MENU</button>
     <div id="stage">
       <div id="machine">
         <div id="reelWindow">
@@ -54,10 +72,10 @@
         </div>
         <!-- Machine artwork: 4 animation frames, layered and cross-faded in a cycle -->
         <div id="machineArt" aria-hidden="true">
-          <img class="mf mf0" src="assets/machine-0.webp?v=1.6.0" alt="" draggable="false">
-          <img class="mf mf1" src="assets/machine-1.webp?v=1.6.0" alt="" draggable="false">
-          <img class="mf mf2" src="assets/machine-2.webp?v=1.6.0" alt="" draggable="false">
-          <img class="mf mf3" src="assets/machine-3.webp?v=1.6.0" alt="" draggable="false">
+          <img class="mf mf0" src="assets/machine-0.webp?v=1.7.0" alt="" draggable="false">
+          <img class="mf mf1" src="assets/machine-1.webp?v=1.7.0" alt="" draggable="false">
+          <img class="mf mf2" src="assets/machine-2.webp?v=1.7.0" alt="" draggable="false">
+          <img class="mf mf3" src="assets/machine-3.webp?v=1.7.0" alt="" draggable="false">
         </div>
 
         <!-- Displays printed on the machine -->
@@ -90,6 +108,7 @@
     <div class="dlg-body">
       <div class="verbox"><span>Version</span><b id="verLbl"></b></div>
       <p class="muted">Gem Royale is a free-play game. Credits have no cash value.</p>
+      <button class="wide" id="btnToMenu">Back to machine menu</button>
       <button class="wide" id="btnRefill">Reset credits to 2,000</button>
       <button class="wide" id="btnUpdate">Check for updates</button>
     </div>
@@ -98,8 +117,8 @@
   <div id="toast" hidden></div>
   <div id="updating" hidden><div class="spinner"></div><p>Updating to the latest version…</p></div>
 
-  <script src="js/engine.js?v=1.6.0"></script>
-  <script src="js/update.js?v=1.6.0"></script>
-  <script src="js/app.js?v=1.6.0"></script>
+  <script src="js/engine.js?v=1.7.0"></script>
+  <script src="js/update.js?v=1.7.0"></script>
+  <script src="js/app.js?v=1.7.0"></script>
 </body>
 </html>

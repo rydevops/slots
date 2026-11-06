@@ -49,6 +49,7 @@ Gem Royale is a free-play gem slot machine. It is built as a PWA (Progressive We
 | `assets/btn/<name>.webp` | Button sprite strips (names: `settings, info, sound, spin, minus, plus, full`). Each is 4 equal frames side by side, taken from the owner's button sheet: 0 = normal, 1 = bright sparkle, 2 = soft shine, 3 = magenta glow. Each frame has 28% padding on every side for its glow. |
 | `assets/start/bg-0..3.webp` | Start-screen background frames (832×466 each), cut from the owner's 2×2 casino sheet (tile origins (0,0), (836,0), (0,471), (836,471)). |
 | `assets/start/title-0..3.webp` | "Slots Gallery" title frames (1149×370 each), cut from the owner's 4-row title sheet (frame tops at y = 20, 363, 704, 1047). Each frame is clipped to its own band, and glow is kept only near the artwork, so stray glow noise on the sheet is dropped. |
+| `assets/menu/<machine-id>.webp` | Menu card thumbnails (frame 0 of each machine, with its screen hole filled dark). |
 | `assets/bg.jpg` | Blurred casino background for the page. |
 | `icons/` | App icons (180 / 192 / 512). |
 
@@ -57,6 +58,13 @@ Gem Royale is a free-play gem slot machine. It is built as a PWA (Progressive We
 - `#startScreen` (fixed, above the game) is the first thing shown. Its background and title each crossfade through their 4 frames, reusing the `mf1/mf2/mf3` keyframes (background 4.8 s, title 2.4 s). The title drops in, then gently floats. **TAP TO START** flashes, and the version is shown at the bottom.
 - Startup (end of `app.js`): the start screen appears as soon as its 8 images load, while the game artwork keeps loading behind it (`gameReady`). Tapping anywhere (or pressing Space/Enter) calls `startGame()`. That shows "Loading…" if the game artwork isn't ready yet, then reveals `#app`, runs `init()` and fades the start screen out.
 - The start screen shows on every launch, including after an update reload.
+
+## Machine menu
+
+- Flow: start screen → `#menuScreen` (machine select) → game (`#app`). The ‹ MENU button in the game and "Back to machine menu" in Settings go back. Leaving is blocked mid-spin and during free spins, and turns autoplay off.
+- `MACHINES` in `app.js` lists every machine (`id`, `name`, `tagline`, `thumb`, `ready`). `ready: false` shows a dimmed "COMING SOON" card with a NEW ribbon. `openMachine(id)` currently only knows `gem-royale`.
+- The menu is a **placeholder design**: it reuses the start-screen background and title. The owner will supply menu artwork later.
+- **Unicorn Royale** (next machine) art was supplied: a 4-frame machine sheet, a 4-column button sheet (normal, bright, pressed/dark, rainbow glow), a 15-symbol × 5-frame symbol sheet on an opaque gradient background, and a 6-frame JACKPOT banner. Only its menu thumbnail is in the repo so far. Adding it will need `engine.js`/`app.js` to support more than one machine (per-machine symbols, payouts, art and overlay positions).
 
 ## Layout of the machine
 
@@ -105,5 +113,5 @@ Simulation: `node tools/simulate.js` prints RTP, hit rates and volatility, plus 
 python3 -m http.server 8000      # from the repo root, then open http://localhost:8000
 ```
 - To test the update flow, serve a copy of the site from a temp folder, open it, then run `node tools/bump-version.js patch` inside that copy and trigger a resume (a `visibilitychange` event). The page should reload to the start screen showing the new version.
-- Tests must tap through the start screen first (wait for `#startScreen:not([hidden])`, then click it) before the game controls exist.
+- Tests must tap through the start screen (wait for `#startScreen:not([hidden])`, click it), then pick Gem Royale in the menu (`.mn-card[data-machine="gem-royale"]`) before the game controls exist.
 - Use Playwright with `devices['iPhone 14']`, `devices['iPhone 14 landscape']` and `devices['iPhone SE']`. Check that there are no page errors, the machine fits the screen, spin/bet/autoplay/help work, and nothing overflows horizontally.

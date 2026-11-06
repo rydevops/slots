@@ -11,6 +11,12 @@ All notable changes to Gem Royale are listed here. The format follows
 The version shown in the app's Settings matches the newest entry. Versions 1.0.0–1.3.0 were
 released before numbering was added to the app and are recorded here retroactively.
 
+## [1.7.0] - 2026-11-06
+
+### Added
+- Machine select menu (placeholder design) between the start screen and the game, listing every machine in the gallery: Gem Royale (playable) and Unicorn Royale (coming soon).
+- ‹ MENU button in the game and "Back to machine menu" in Settings. Leaving is blocked mid-spin and during free spins, and turns autoplay off.
+
 ## [1.6.0] - 2026-11-06
 
 ### Added
