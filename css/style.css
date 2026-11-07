@@ -186,12 +186,13 @@ button { font: inherit; color: inherit; touch-action: manipulation; cursor: poin
 #underlay { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; background: #12041a; }
 #underlay .ul-frame {
   position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
-  width: max(100vw, 100dvh * 4 / 3); aspect-ratio: 4 / 3; overflow: hidden;
+  width: max(100vw, 100dvh * 236 / 176); aspect-ratio: 236 / 176; overflow: hidden;   /* one frame */
 }
 #underlay .ul-sheet { position: absolute; left: 0; top: 0; width: 600%; height: 600%; display: block; will-change: transform; }
 #underlay::after {   /* keep the edges calm and the machine readable */
   content: ""; position: absolute; inset: 0;
-  background: radial-gradient(ellipse at 50% 50%, rgba(18,4,26,0) 45%, rgba(18,4,26,.45) 100%);
+  /* a light overall dim plus a vignette, so the busy scenes don't compete with the machine */
+  background: radial-gradient(ellipse at 50% 50%, rgba(18,4,26,.18) 40%, rgba(18,4,26,.55) 100%);
 }
 #app {
   position: relative; z-index: 1;
@@ -437,7 +438,7 @@ button { font: inherit; color: inherit; touch-action: manipulation; cursor: poin
 #fsBar[hidden], #autoChip[hidden] { display: none; }
 @keyframes pulseBar { from { filter: brightness(.9); } to { filter: brightness(1.15); } }
 
-#hint { margin: 0; padding: 0 16px; text-align: center; font-size: 13px; color: #cdb3d9; }
+#hint { margin: 0 16px; padding: 4px 12px; border-radius: 999px; background: rgba(18, 4, 26, .72); text-align: center; font-size: 13px; color: #e2cdee; text-shadow: 0 1px 2px #000; }
 #hint b { color: var(--gold); }
 
 @media (orientation: landscape) and (max-height: 600px) {
