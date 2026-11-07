@@ -182,18 +182,14 @@ button { font: inherit; color: inherit; touch-action: manipulation; cursor: poin
 
 /* ---------- Layout ---------- */
 /* Animated underlay: a window the size of one frame (4:3, covering the screen);
-   the 6×6 sheet inside is moved with translate() to show each frame */
+   the 6×6 sheet inside is moved with translate() to show each frame.
+   Shown as-is: no blur, dimming or vignette over the artwork. */
 #underlay { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; background: #12041a; }
 #underlay .ul-frame {
   position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
-  width: max(100vw, 100dvh * 236 / 176); aspect-ratio: 236 / 176; overflow: hidden;   /* one frame */
+  width: max(100vw, 100dvh * 472 / 352); aspect-ratio: 472 / 352; overflow: hidden;   /* one frame */
 }
 #underlay .ul-sheet { position: absolute; left: 0; top: 0; width: 600%; height: 600%; display: block; will-change: transform; }
-#underlay::after {   /* keep the edges calm and the machine readable */
-  content: ""; position: absolute; inset: 0;
-  /* a light overall dim plus a vignette, so the busy scenes don't compete with the machine */
-  background: radial-gradient(ellipse at 50% 50%, rgba(18,4,26,.18) 40%, rgba(18,4,26,.55) 100%);
-}
 #app {
   position: relative; z-index: 1;
   height: 100%;
