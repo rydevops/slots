@@ -598,6 +598,7 @@
         symbols: 'assets/gems.webp',
         btn: n => `assets/btn/${n}.webp`,
         bg: 'assets/bg.jpg',
+        underlay: 'assets/underlay/gem-royale.webp',
       },
       layout: {
         reels: [23.14, 28.22, 55.32, 27.83],
@@ -616,6 +617,7 @@
         symbols: 'assets/unicorn/symbols.webp',
         btn: n => `assets/unicorn/btn/${n}.webp`,
         bg: 'assets/unicorn/bg.jpg',
+        underlay: 'assets/underlay/unicorn-royale.webp',
         jackpot: [0, 1, 2, 3, 4, 5].map(i => `assets/unicorn/jackpot-${i}.webp`),
       },
       layout: {
@@ -639,7 +641,24 @@
     const i = new Image(); i.onload = i.onerror = res; i.src = src;
   })));
   const BTN_NAMES = ['settings', 'info', 'sound', 'spin', 'minus', 'plus', 'full'];
-  const machineImgs = m => [...m.art.frames, m.art.symbols, ...BTN_NAMES.map(m.art.btn)].map(assetUrl);
+  const machineImgs = m => [...m.art.frames, m.art.symbols, m.art.underlay, ...BTN_NAMES.map(m.art.btn)].map(assetUrl);
+
+  // ---------- animated underlay ----------
+  // Steps through the 36 frames of the current machine's 6×6 underlay sheet (12 fps, 3 s loop).
+  // Runs only while the game is on screen; Reduce Motion slows it to 3 fps.
+  const UL_FRAMES = 36;
+  let ulFrame = 0, ulTimer = null;
+  function ulTick() {
+    if ($('app').hidden || document.hidden) return;
+    ulFrame = (ulFrame + 1) % UL_FRAMES;
+    const c = ulFrame % 6, r = Math.floor(ulFrame / 6);
+    $('underlay').querySelector('.ul-sheet').style.transform = `translate(${(-c * 100) / 6}%, ${(-r * 100) / 6}%)`;
+  }
+  function startUnderlay() {
+    if (ulTimer) return;
+    const slow = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    ulTimer = setInterval(ulTick, slow ? 333 : 83);
+  }
   const ready = {};
   const machineReady = m => (ready[m.id] = ready[m.id] || preload(machineImgs(m)));
   const startImgs = [0, 1, 2, 3].flatMap(i => [`assets/start/bg-${i}.webp?v=${ver}`, `assets/start/title-${i}.webp?v=${ver}`]);
@@ -657,6 +676,7 @@
     document.querySelectorAll('#machineArt .mf').forEach((img, i) => { img.src = assetUrl(m.art.frames[i]); });
     document.documentElement.style.setProperty('--symSheet', `url("${assetUrl(m.art.symbols)}")`);
     document.body.style.backgroundImage = `url("${assetUrl(m.art.bg)}")`;
+    $('underlay').querySelector('.ul-sheet').src = assetUrl(m.art.underlay);
     const place = (el, r) => { if (!r) return; Object.assign(el.style, { left: r[0] + '%', top: r[1] + '%', width: r[2] + '%', height: r[3] + '%' }); };
     place(reelWindow, m.layout.reels);
     place($('dispBet'), m.layout.bet); place($('dispBal'), m.layout.bal); place($('dispWin'), m.layout.win);
@@ -728,6 +748,7 @@
     $('menuScreen').hidden = true;
     A.scene(m.id);
     enterMachine(m);
+    startUnderlay();
     opening = false;
   }
   // ---------- sound controls ----------

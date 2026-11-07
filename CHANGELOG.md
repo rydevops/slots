@@ -11,6 +11,15 @@ All notable changes to Gem Royale are listed here. The format follows
 The version shown in the app's Settings matches the newest entry. Versions 1.0.0–1.3.0 were
 released before numbering was added to the app and are recorded here retroactively.
 
+## [1.13.0] - 2026-11-07
+
+### Added
+- Animated backgrounds under each machine, from the supplied 36-frame sheets:
+  - Gem Royale: jewel sparkles and flowing neon light;
+  - Unicorn Royale: rainbow auroras, clouds and twinkling stars.
+
+  Each plays in a 3-second loop (12 fps), fills the screen behind the machine, and only runs while a machine is on screen. Reduce Motion slows it down.
+
 ## [1.12.0] - 2026-11-06
 
 ### Changed
