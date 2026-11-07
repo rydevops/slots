@@ -11,6 +11,16 @@ All notable changes to Gem Royale are listed here. The format follows
 The version shown in the app's Settings matches the newest entry. Versions 1.0.0–1.3.0 were
 released before numbering was added to the app and are recorded here retroactively.
 
+## [1.15.0] - 2026-11-07
+
+### Changed
+- Machine underlays now use the owner's higher-resolution artwork: four 3 × 3 sheets per theme (36 frames), each frame 472 × 352 (twice the previous size). The frames are combined into one 6 × 6 sheet per machine and still play at 12 fps.
+- The underlays are shown as they are: the dimming and vignette over the background were removed.
+
+### Fixed
+- The four sheets were generated separately, so each jumps to a different scene. A short cross-dissolve (4 frames, about 0.3 s) now joins them, including the loop from frame 36 back to frame 1.
+- Cells in the last Unicorn Royale sheet were up to 1.1 px out of line, which would have jittered; every frame is now registered to its sheet's first frame (residual < 0.25 px).
+
 ## [1.14.0] - 2026-11-07
 
 ### Changed
