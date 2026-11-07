@@ -181,6 +181,18 @@ button { font: inherit; color: inherit; touch-action: manipulation; cursor: poin
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* ---------- Layout ---------- */
+/* Animated underlay: a window the size of one frame (4:3, covering the screen);
+   the 6×6 sheet inside is moved with translate() to show each frame */
+#underlay { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; background: #12041a; }
+#underlay .ul-frame {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  width: max(100vw, 100dvh * 4 / 3); aspect-ratio: 4 / 3; overflow: hidden;
+}
+#underlay .ul-sheet { position: absolute; left: 0; top: 0; width: 600%; height: 600%; display: block; will-change: transform; }
+#underlay::after {   /* keep the edges calm and the machine readable */
+  content: ""; position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 50% 50%, rgba(18,4,26,0) 45%, rgba(18,4,26,.45) 100%);
+}
 #app {
   position: relative; z-index: 1;
   height: 100%;
