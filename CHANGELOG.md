@@ -11,6 +11,19 @@ All notable changes to Gem Royale are listed here. The format follows
 The version shown in the app's Settings matches the newest entry. Versions 1.0.0–1.3.0 were
 released before numbering was added to the app and are recorded here retroactively.
 
+## [1.14.0] - 2026-11-07
+
+### Changed
+- New animated backgrounds behind each machine, from the supplied 36-frame sheets:
+  - Gem Royale: swirling jewels and neon light trails;
+  - Unicorn Royale: a pegasus flying over a rainbow castle landscape.
+- **Sheet preparation:**
+  - every frame is cut 4 px inside its cell at exact sub-pixel positions (the cells are 241⅓ px wide), which removes the dividing lines and a 0.6 px every-third-frame jitter that whole-pixel cropping caused;
+  - frames are kept at 236×176, close to their native resolution;
+  - both loops close smoothly (frame 36 → 1 changes less than a typical step).
+- Playback is driven by elapsed time (`frame = floor(seconds × 12) % 36`, 3 s loop) via requestAnimationFrame, so speed is the same on every device and it only redraws when the frame changes.
+- The underlay gets a light overall dim and vignette, and the hint line under the machine sits on a dark pill, so it stays readable over the brighter scenes.
+
 ## [1.13.0] - 2026-11-07
 
 ### Added

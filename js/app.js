@@ -644,20 +644,29 @@
   const machineImgs = m => [...m.art.frames, m.art.symbols, m.art.underlay, ...BTN_NAMES.map(m.art.btn)].map(assetUrl);
 
   // ---------- animated underlay ----------
-  // Steps through the 36 frames of the current machine's 6×6 underlay sheet (12 fps, 3 s loop).
-  // Runs only while the game is on screen; Reduce Motion slows it to 3 fps.
-  const UL_FRAMES = 36;
-  let ulFrame = 0, ulTimer = null;
-  function ulTick() {
-    if ($('app').hidden || document.hidden) return;
-    ulFrame = (ulFrame + 1) % UL_FRAMES;
-    const c = ulFrame % 6, r = Math.floor(ulFrame / 6);
-    $('underlay').querySelector('.ul-sheet').style.transform = `translate(${(-c * 100) / 6}%, ${(-r * 100) / 6}%)`;
+  // The current machine's 6×6 sheet holds 36 frames (left→right, top→bottom). Playback is driven
+  // by elapsed time, so the speed is the same on every device: frame = floor(seconds × fps) % 36,
+  // 12 fps = a 3 s loop (3 fps with Reduce Motion). Only redraws when the frame changes, and only
+  // while the game is on screen (requestAnimationFrame also pauses in the background).
+  const UL = { columns: 6, frameCount: 36, fps: 12 };
+  let ulRaf = 0, ulStart = 0, ulShown = -1;
+  function ulDraw(now) {
+    ulRaf = 0;
+    if ($('app').hidden) return;                          // menu: stop; startUnderlay() resumes
+    const fps = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches ? 3 : UL.fps;
+    const frame = Math.floor(((now - ulStart) / 1000) * fps) % UL.frameCount;
+    if (frame !== ulShown) {
+      ulShown = frame;
+      const c = frame % UL.columns, r = Math.floor(frame / UL.columns);
+      $('underlay').querySelector('.ul-sheet').style.transform =
+        `translate(${(-c * 100) / UL.columns}%, ${(-r * 100) / (UL.frameCount / UL.columns)}%)`;
+    }
+    ulRaf = requestAnimationFrame(ulDraw);
   }
   function startUnderlay() {
-    if (ulTimer) return;
-    const slow = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
-    ulTimer = setInterval(ulTick, slow ? 333 : 83);
+    if (ulRaf) return;
+    ulStart = performance.now(); ulShown = -1;
+    ulRaf = requestAnimationFrame(ulDraw);
   }
   const ready = {};
   const machineReady = m => (ready[m.id] = ready[m.id] || preload(machineImgs(m)));
